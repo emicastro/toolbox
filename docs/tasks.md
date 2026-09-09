@@ -8,16 +8,16 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 1 — Repo skeleton
 
-- [ ] **1.1** `git init` this repo; add `.gitignore` (`dist/`, `*.local.toml`
+- [x] **1.1** `git init` this repo; add `.gitignore` (`dist/`, `*.local.toml`
       if that pattern is ever used, standard Go entries: none needed yet
       since `cmd/tb` has no build artifacts checked in).
       Check: `git status` shows a clean initial tree after first commit.
-- [ ] **1.2** Write toolbox's own `AGENTS.md` (hand-written, not
+- [x] **1.2** Write toolbox's own `AGENTS.md` (hand-written, not
       `tb`-generated — this repo has no profile of its own). Short: point at
       `docs/requirements.md`, `docs/design.md`, `docs/tasks.md` as source of
       truth; state English-only content rule.
       Check: file exists, under ~30 lines.
-- [ ] **1.3** Write toolbox-side `toolbox.toml` per design §3.1 note ("if
+- [x] **1.3** Write toolbox-side `toolbox.toml` per design §3.1 note ("if
       needed") — a single `schema_version = "1"` line is sufficient for v1;
       do not invent fields design.md doesn't define.
       Check: file parses under the task-group-3 TOML reader once it exists

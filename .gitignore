@@ -1,0 +1,5 @@
+# Build output of cmd/tb (task group 5)
+dist/
+
+# Local-only config overrides, if ever used
+*.local.toml
