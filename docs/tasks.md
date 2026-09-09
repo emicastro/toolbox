@@ -114,13 +114,13 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 5 — Build and CI
 
-- [ ] **5.1** Build script (`Makefile` or `cmd/tb/build.sh` — pick one, keep
+- [x] **5.1** Build script (`Makefile` or `cmd/tb/build.sh` — pick one, keep
       it under ~20 lines) producing `dist/tb-linux-amd64` and
       `dist/tb-darwin-arm64` via the flags in design §11.
       Check: both binaries build locally on Arch (darwin/arm64 as a
       cross-compile check, `file dist/tb-darwin-arm64` reports the right
       target).
-- [ ] **5.2** CI workflow: `gofmt -l`, `go vet ./...`, `go test ./...` on
+- [x] **5.2** CI workflow: `gofmt -l`, `go vet ./...`, `go test ./...` on
       push, scoped to `cmd/tb/**` paths only.
       Check: workflow passes on this repo's initial commit containing all
       of the above.
