@@ -31,12 +31,12 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
       design §3.3, with the exact skill lists from design §8 (five process +
       two or three domain skills, no extras).
       Check: manually diff each `skills` array against requirements §6.2/§6.3.
-- [ ] **2.3** Five process skills, one `SKILL.md` each per design §10:
+- [x] **2.3** Five process skills, one `SKILL.md` each per design §10:
       `skills/spec/`, `skills/adr/`, `skills/onboard/`, `skills/scout/`,
       `skills/handoff/`. Bodies describe the workflow named in requirements
       §6.2 (one sentence per skill there is the minimum content bar).
       Check: each has `name`/`description` frontmatter matching its dir name.
-- [ ] **2.4** Five domain skills: `skills/rust-verify/`,
+- [x] **2.4** Five domain skills: `skills/rust-verify/`,
       `skills/rust-systems/`, `skills/go-verify/`, `skills/infra-go/`,
       `skills/aws-guard/`. The two `*-verify` skills must state the exact
       commands from requirements §6.3 (`cargo test`; `cargo clippy -- -D
