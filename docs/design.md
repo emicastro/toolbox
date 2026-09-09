@@ -83,8 +83,11 @@ content, not Go source.
 - Line comments starting with `#`, blank lines ignored.
 - Bare (unquoted) keys, `=`, then one of:
   - a double-quoted string: `profile = "rust-systems"`
-  - a flat array of double-quoted strings, one line, no nesting:
-    `skills = ["spec", "adr", "onboard"]`
+  - a flat array of double-quoted strings, no nesting: `skills = ["spec",
+    "adr", "onboard"]`. Like real TOML, newlines inside the brackets are
+    insignificant, so the array may span multiple lines up to its closing
+    `]` — `profiles/*.toml` (§3.3) relies on this to keep long skill lists
+    readable.
 - One `[section]` header form, used only by `profiles/*.toml` (`[verify]`
   holds free-form string keys for the verify recipe summary — see 3.3).
 - No inline tables, no multi-line strings, no numbers, no dates, no nested

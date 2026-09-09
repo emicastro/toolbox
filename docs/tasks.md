@@ -53,27 +53,27 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 3 — Binary core
 
-- [ ] **3.1** `cmd/tb/go.mod` (`module toolbox/cmd/tb`, `go 1.27`, no
+- [x] **3.1** `cmd/tb/go.mod` (`module toolbox/cmd/tb`, `go 1.27`, no
       `require` block per ADR 0001). `cmd/tb/main.go` with subcommand
       dispatch (`install`, `init`, `doctor`, `skill`, `persona`) and a
       top-level usage message on no/unknown args (exit 2).
       Check: `go build ./cmd/tb/...` succeeds with zero dependencies in
       `go.sum` (no `go.sum` file at all is fine).
-- [ ] **3.2** `internal/paths`: `Resolve() (string, error)` per design §1.
+- [x] **3.2** `internal/paths`: `Resolve() (string, error)` per design §1.
       Check: table tests — env set to existing dir, env unset with
       `~/toolbox` present, env set to missing dir (error), env empty string
       (falls through to default).
-- [ ] **3.3** `internal/config`: TOML-subset reader per design §3.1, plus
+- [x] **3.3** `internal/config`: TOML-subset reader per design §3.1, plus
       typed loaders `LoadProfile(path) (Profile, error)` and
       `LoadPointer(path) (Pointer, error)` for the two schemas in §3.2/§3.3.
       Check: table tests covering every construct in the subset and at
       least three unsupported-syntax rejections with correct `file:line`.
-- [ ] **3.4** `internal/agents`: `Detect() (claude, grok bool)` per ADR
+- [x] **3.4** `internal/agents`: `Detect() (claude, grok bool)` per ADR
       0003 (PATH lookup OR config-dir check, injectable for tests).
       Check: tests fake `PATH` and `$HOME`/`$USERPROFILE`-equivalent to
       cover all four presence combinations without touching the real
       environment.
-- [ ] **3.5** `internal/render`: managed-region template execution and the
+- [x] **3.5** `internal/render`: managed-region template execution and the
       three-state merge logic from design §4 (`Render(profile, persona)
       string`, `Merge(existing, region string) (result string, refused
       bool)`).
