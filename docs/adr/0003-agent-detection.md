@@ -1,6 +1,6 @@
 # 0003. Agent detection: PATH or known config dir, either is presence
 
-Status: accepted
+Status: superseded by 0004
 Date: 2026-09-09
 
 ## Context
@@ -42,3 +42,18 @@ Grok Build: `exec.LookPath("grok")` OR `~/.grok` exists.
 - The exact binary names and config dirs are a small lookup table in
   `internal/agents`, so adding a third agent later (§12) is a one-line
   addition, not a design change.
+
+## Superseded
+
+Found while implementing and testing `tb install`/`tb doctor` (group 4,
+docs/tasks.md): the "config dir exists" signal chosen here is not just a
+rare stale-leftover false positive as predicted above — it is a
+*permanent, self-inflicted* one. `tb install` itself creates
+`~/.claude/skills` (so it has somewhere to put the symlinks), and
+`os.MkdirAll` creates `~/.claude` as that path's parent along the way.
+After the very first `tb install` run, `~/.claude` exists forever
+regardless of whether Claude Code is actually installed, so this
+heuristic reports both agents present on every later `tb doctor` /
+`tb install`, permanently defeating requirements.md §13 item 8 (doctor
+must fail closed on zero agents) from the second run onward. See
+0004-agent-detection-marker-file.md.

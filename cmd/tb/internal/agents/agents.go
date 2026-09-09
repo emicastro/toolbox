@@ -1,6 +1,6 @@
 // Package agents detects whether the v1 install targets, Claude Code and
 // Grok Build, are present on this machine (docs/design.md §7,
-// docs/adr/0003-agent-detection.md).
+// docs/adr/0004-agent-detection-marker-file.md).
 package agents
 
 import (
@@ -10,23 +10,29 @@ import (
 )
 
 // target describes one v1 install target's detection signals: a binary
-// name looked up on PATH, and a config directory checked relative to the
-// user's home. Either signal is sufficient (ADR 0003).
+// name looked up on PATH, and a marker file checked relative to the
+// user's home. Either signal is sufficient (ADR 0004).
+//
+// The marker must be a file only the real client creates — not the bare
+// config directory (ADR 0003, superseded): `tb install` itself creates
+// `~/.claude/skills`, and MkdirAll creates `~/.claude` as that path's
+// parent, so checking the directory's mere existence made every agent
+// permanently read "present" after the first `tb install` run.
 type target struct {
-	binary    string
-	configDir string
+	binary     string
+	markerFile string // relative to $HOME
 }
 
 var (
-	claudeTarget = target{binary: "claude", configDir: ".claude"}
-	grokTarget   = target{binary: "grok", configDir: ".grok"}
+	claudeTarget = target{binary: "claude", markerFile: filepath.Join(".claude", "settings.json")}
+	grokTarget   = target{binary: "grok", markerFile: filepath.Join(".grok", "config.toml")}
 )
 
 // Detect reports whether Claude Code and Grok Build are present on this
 // machine, using the real PATH and home directory. `tb install` and
 // `tb doctor` both call Detect so they can never disagree.
 func Detect() (claude, grok bool) {
-	home, _ := os.UserHomeDir() // an empty home just fails the config-dir check below
+	home, _ := os.UserHomeDir() // an empty home just fails the marker-file check below
 	return DetectIn(realLookPath, home)
 }
 
@@ -44,8 +50,8 @@ func present(a target, lookPath func(string) bool, home string) bool {
 	if home == "" {
 		return false
 	}
-	info, err := os.Stat(filepath.Join(home, a.configDir))
-	return err == nil && info.IsDir()
+	_, err := os.Stat(filepath.Join(home, a.markerFile))
+	return err == nil
 }
 
 func realLookPath(binary string) bool {

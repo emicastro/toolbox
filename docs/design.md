@@ -4,7 +4,7 @@ Status: accepted
 Date: 2026-09-09
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8. It does not
-restate rationale already recorded in `docs/adr/000{1,2,3}-*.md` — those are
+restate rationale already recorded in `docs/adr/000{1,2,3,4}-*.md` — those are
 cited, not re-argued.
 
 ## 1. Path resolution
@@ -176,7 +176,17 @@ the implementation spec `internal/render` follows):
 
 "Refuse" prints the region that *would* have been written to stdout (so the
 user can copy it by hand) and exits 1 without touching the file.
-Interactivity is detected via `term.IsTerminal(os.Stdin.Fd())`.
+Interactivity is detected with stdlib only (ADR 0001 rules out
+`golang.org/x/term`, which the original draft of this section
+mistakenly named): `os.Stdin.Stat()` and a check of the
+`os.ModeCharDevice` bit on the result, with one correction found while
+implementing group 4 — `/dev/null` is itself a character device, so a
+bare `ModeCharDevice` test misreads `tb init </dev/null` (a common way
+scripts and CI mark a command non-interactive) as interactive, which
+would print a prompt and then block reading stdin instead of refusing.
+`os.SameFile` against `os.DevNull` rules that specific case out. This
+is still not a full TTY check — a redirect from some other character
+device would still read as interactive — which is an accepted v1 gap.
 
 ## 5. Command specs
 
@@ -190,9 +200,17 @@ flags, missing required flag).
 ### 5.1 `tb install`
 
 1. Resolve toolbox home (§1).
-2. For each of `~/.claude/skills`, `~/.grok/skills`: `os.MkdirAll` if
+2. Detect agents (§7) — **before** step 3 creates anything. ADR 0003's
+   config-dir signal is "`$HOME/.claude` exists"; step 3's
+   `os.MkdirAll(~/.claude/skills, ...)` creates that parent directory as
+   a side effect, so detecting after step 3 would make every install
+   self-fulfillingly report both agents present. This ordering bug was
+   found while implementing and testing group 4 (docs/tasks.md) and is
+   why detection is listed before directory creation here, unlike an
+   earlier draft of this section.
+3. For each of `~/.claude/skills`, `~/.grok/skills`: `os.MkdirAll` if
    missing.
-3. List `$TOOLBOX_HOME/skills/*` (directories containing `SKILL.md`). For
+4. List `$TOOLBOX_HOME/skills/*` (directories containing `SKILL.md`). For
    each skill name, for each of the two target dirs:
    - target does not exist → `os.Symlink(source, target)`.
    - target is a symlink already pointing at `source` → leave it
@@ -201,14 +219,13 @@ flags, missing required flag).
    - target exists and is a real file/dir (not a symlink) → print
      `warn: <target> exists and is not managed by tb, skipping`, continue
      with the remaining skills (does not abort the run).
-4. Detect agents (§7). If both absent: print
+5. Using the presence from step 2: if both absent, print
    `error: neither Claude Code nor Grok Build detected`, exit 1 (skills
    were still linked — a later install with an agent present just
    succeeds). If exactly one absent: print
    `warn: <agent> not detected on this machine`, exit 0. If both present:
-   silent success (or a one-line summary if not `--quiet`... no `--quiet`
-   flag in v1, always print the summary).
-5. Print a summary: toolbox home, N skills linked per target, agent
+   proceed silently to the summary.
+6. Print a summary: toolbox home, N skills linked per target, agent
    presence for both.
 
 ### 5.2 `tb init [-p|--profile <name>] [--force]`
@@ -296,8 +313,13 @@ skill's conflict never blocks the others from linking.
 
 ## 7. Agent detection and failure policy
 
-Detection heuristic and lookup table fixed by ADR 0003
-(`exec.LookPath` OR known config dir, per agent). Failure policy (fixed by
+Detection heuristic and lookup table fixed by ADR 0004 (superseding ADR
+0003): `exec.LookPath` OR a marker file inside the agent's config
+directory, per agent — `~/.claude/settings.json` for Claude Code,
+`~/.grok/config.toml` for Grok Build. ADR 0003's original "config dir
+exists" signal is not used: `tb install` itself creates
+`~/.claude/skills`, so the bare directory existing is not a reliable
+presence signal (ADR 0004 has the story). Failure policy (fixed by
 requirements §8.1/§8.3, restated for implementers):
 
 - Both present → success, exit 0.
@@ -307,7 +329,7 @@ requirements §8.1/§8.3, restated for implementers):
 
 `internal/agents` exposes one function,
 `Detect() (claude, grok bool)`, used identically by `install` and `doctor`
-so the two commands can never disagree (ADR 0003 consequence).
+so the two commands can never disagree (ADR 0004 consequence).
 
 ## 8. Profile content (v1, exact)
 

@@ -83,14 +83,14 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 4 — Commands
 
-- [ ] **4.1** `tb install` (design §5.1 + §6). Creates both skill dirs,
+- [x] **4.1** `tb install` (design §5.1 + §6). Creates both skill dirs,
       links/relinks/skips per the symlink strategy, prints the summary,
       applies the exit-code policy from design §7.
       Check: integration test in `t.TempDir()` with a fake `$TOOLBOX_HOME`
       containing two skills and fake `$HOME`; asserts both dirs get correct
       symlinks and a pre-existing real file at one target is skipped with a
       warning, not fatal.
-- [ ] **4.2** `tb init` (design §5.2). Profile load, git-repo check,
+- [x] **4.2** `tb init` (design §5.2). Profile load, git-repo check,
       `toolbox.toml` write/merge, `AGENTS.md` render/merge via
       `internal/render`, template materialization (create-if-missing,
       `docs/adr/*` never touched beyond the create-if-missing template
@@ -100,15 +100,15 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
       before/after); re-run without `--force` on existing `AGENTS.md`
       (non-interactive refuses, exit 1, file unchanged); `--force` (only
       `AGENTS.md` + `toolbox.toml` change).
-- [ ] **4.3** `tb doctor` (design §5.3). Read-only, one-screen output, exit
+- [x] **4.3** `tb doctor` (design §5.3). Read-only, one-screen output, exit
       code only on zero-agents.
       Check: tests for "clean" (both agents faked present), "one missing"
       (exit 0), "zero agents" (exit 1); a test with no `toolbox.toml` in
       cwd skips steps 5–6 without erroring.
-- [ ] **4.4** `tb skill new <name>` (design §5.4).
+- [x] **4.4** `tb skill new <name>` (design §5.4).
       Check: test for valid name (scaffold created, next-steps text
       printed), invalid name (exit 2), already-exists (exit 1).
-- [ ] **4.5** `tb persona show` (design §5.5).
+- [x] **4.5** `tb persona show` (design §5.5).
       Check: test reading a fixture profile + `personas/default.md`,
       asserting both section titles print exactly.
 
