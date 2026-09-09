@@ -44,7 +44,7 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
       vet`; race when tests involve concurrency).
       Check: verify commands in the skill body match requirements §6.3
       word-for-word.
-- [ ] **2.5** `templates/AGENTS.md` (the managed-region skeleton, design §4)
+- [x] **2.5** `templates/AGENTS.md` (the managed-region skeleton, design §4)
       and `templates/docs/{requirements,design,tasks,session}.md` as minimal
       starter stubs (headings + one-line "fill this in" placeholders) plus
       `templates/docs/adr/0000-template.md` (copy of this repo's own
