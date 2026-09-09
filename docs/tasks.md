@@ -25,9 +25,9 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 2 — Content (skills, profiles, persona, templates)
 
-- [ ] **2.1** `personas/default.md` exactly per design §9.
+- [x] **2.1** `personas/default.md` exactly per design §9.
       Check: two `##` headings present, titles match design.md verbatim.
-- [ ] **2.2** `profiles/rust-systems.toml` and `profiles/infra-go.toml` per
+- [x] **2.2** `profiles/rust-systems.toml` and `profiles/infra-go.toml` per
       design §3.3, with the exact skill lists from design §8 (five process +
       two or three domain skills, no extras).
       Check: manually diff each `skills` array against requirements §6.2/§6.3.

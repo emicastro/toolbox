@@ -1,0 +1,12 @@
+name = "infra-go"
+description = "Go CLIs, scripts, AWS/infra glue, one-shot jobs - not long-running HTTP backends"
+persona = "default"                       # personas/<persona>.md
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff",
+  "go-verify", "infra-go", "aws-guard",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "go test ./...; go vet; -race when tests involve concurrency"
