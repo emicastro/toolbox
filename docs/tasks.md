@@ -127,24 +127,24 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 6 — Acceptance (requirements §13, run manually)
 
-- [ ] **6.1** On Arch: clone to `TOOLBOX_HOME` (or default), build/install
+- [x] **6.1** On Arch: clone to `TOOLBOX_HOME` (or default), build/install
       `tb`, run `tb install` — confirm skills link, `tb doctor` is clean
       aside from any genuinely-missing agent.
-- [ ] **6.2** `tb init -p rust-systems` in a fresh empty cargo repo and in a
+- [x] **6.2** `tb init -p rust-systems` in a fresh empty cargo repo and in a
       non-empty rust repo that already has `docs/adr/0001-*.md` — confirm
       pointer + `AGENTS.md` + `docs/` created, existing ADR untouched.
-- [ ] **6.3** `tb init -p infra-go` in a Go module — same checks.
-- [ ] **6.4** Re-run `tb init` without `--force` on each repo from 6.2/6.3 —
+- [x] **6.3** `tb init -p infra-go` in a Go module — same checks.
+- [x] **6.4** Re-run `tb init` without `--force` on each repo from 6.2/6.3 —
       confirm merge-or-refuse behavior (interactive prompt in a real TTY;
       refuse in a script).
-- [ ] **6.5** Re-run with `--force` — confirm only `AGENTS.md` and
+- [x] **6.5** Re-run with `--force` — confirm only `AGENTS.md` and
       `toolbox.toml` changed (`git diff --stat`).
-- [ ] **6.6** `tb skill new demo` — confirm scaffold under
+- [x] **6.6** `tb skill new demo` — confirm scaffold under
       `$TOOLBOX_HOME/skills/demo`.
-- [ ] **6.7** Open Claude Code and/or Grok Build (whichever is installed on
+- [x] **6.7** Open Claude Code and/or Grok Build (whichever is installed on
       that machine) and confirm the symlinked skills are visible.
-- [ ] **6.8** Repeat 6.1–6.7 on the MacBook Air M1.
-- [ ] **6.9** Confirm `tb doctor` fails closed (exit 1) if both agent config
+- [x] **6.8** Repeat 6.1–6.7 on the MacBook Air M1.
+- [x] **6.9** Confirm `tb doctor` fails closed (exit 1) if both agent config
       dirs are temporarily renamed away, and warns (exit 0) with one
       renamed back.
 
