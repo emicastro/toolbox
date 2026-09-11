@@ -12,9 +12,18 @@ func TestInit_EmptyRepoCreatesEverything(t *testing.T) {
 	repo := newGitRepo(t)
 	t.Chdir(repo)
 
-	_, stderr, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems"}) })
+	stdout, stderr, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems"}) })
 	if code != 0 {
 		t.Fatalf("Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	if !strings.Contains(stdout, "wrote: "+filepath.Join(repo, "toolbox.toml")) {
+		t.Errorf("stdout = %q, want wrote: for new toolbox.toml", stdout)
+	}
+	if !strings.Contains(stdout, "wrote: "+filepath.Join(repo, "AGENTS.md")) {
+		t.Errorf("stdout = %q, want wrote: for new AGENTS.md", stdout)
+	}
+	if strings.Contains(stdout, "unchanged:") {
+		t.Errorf("stdout = %q, want no unchanged: on first init", stdout)
 	}
 
 	for _, rel := range []string{"toolbox.toml", "AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"} {
@@ -164,6 +173,35 @@ func TestInit_RerunWithoutForceRefusesWhenSomethingWouldChange(t *testing.T) {
 	}
 }
 
+func TestInit_ForceIdempotentReportsUnchanged(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	repo := newGitRepo(t)
+	t.Chdir(repo)
+
+	if _, _, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems"}) }); code != 0 {
+		t.Fatalf("first Init() code = %d, want 0", code)
+	}
+
+	stdout, stderr, code := captureOutput(t, func() int {
+		return Init(toolboxHome, []string{"-p", "rust-systems", "--force"})
+	})
+	if code != 0 {
+		t.Fatalf("forced Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	if !strings.Contains(stdout, "unchanged: "+filepath.Join(repo, "toolbox.toml")) {
+		t.Errorf("stdout = %q, want unchanged: for toolbox.toml when bytes match", stdout)
+	}
+	if !strings.Contains(stdout, "unchanged: "+filepath.Join(repo, "AGENTS.md")) {
+		t.Errorf("stdout = %q, want unchanged: for AGENTS.md when bytes match", stdout)
+	}
+	if strings.Contains(stdout, "wrote: "+filepath.Join(repo, "toolbox.toml")) {
+		t.Errorf("stdout = %q, want no wrote: for unchanged toolbox.toml", stdout)
+	}
+	if strings.Contains(stdout, "wrote: "+filepath.Join(repo, "AGENTS.md")) {
+		t.Errorf("stdout = %q, want no wrote: for unchanged AGENTS.md", stdout)
+	}
+}
+
 func TestInit_ForceRefreshesOnlyAgentsAndPointer(t *testing.T) {
 	toolboxHome := newFixtureToolboxHome(t)
 	repo := newGitRepo(t)
@@ -179,10 +217,17 @@ func TestInit_ForceRefreshesOnlyAgentsAndPointer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, _, code := captureOutput(t, func() int {
+	stdout, stderr, code := captureOutput(t, func() int {
 		return Init(toolboxHome, []string{"-p", "infra-go", "--force"})
-	}); code != 0 {
-		t.Fatalf("forced Init() code = %d, want 0", code)
+	})
+	if code != 0 {
+		t.Fatalf("forced Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	if !strings.Contains(stdout, "wrote: "+filepath.Join(repo, "toolbox.toml")) {
+		t.Errorf("stdout = %q, want wrote: for toolbox.toml when the profile changes", stdout)
+	}
+	if !strings.Contains(stdout, "wrote: "+filepath.Join(repo, "AGENTS.md")) {
+		t.Errorf("stdout = %q, want wrote: for AGENTS.md when the profile changes", stdout)
 	}
 
 	pointer, err := os.ReadFile(filepath.Join(repo, "toolbox.toml"))

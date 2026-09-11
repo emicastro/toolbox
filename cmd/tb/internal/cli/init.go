@@ -87,7 +87,12 @@ func Init(toolboxHome string, args []string) int {
 		return 1
 	}
 
-	printInitSummary(profile.Name, pointerPath, agentsPath, created, skipped)
+	printInitSummary(
+		profile.Name,
+		pointerPath, pointerExisted && existingPointer == newPointer,
+		agentsPath, agentsExisted && existingAgents == newAgents,
+		created, skipped,
+	)
 	return 0
 }
 
@@ -137,14 +142,22 @@ func printRefused(pointerPath, newPointer, agentsPath, region string) {
 	fmt.Fprint(os.Stderr, region)
 }
 
-func printInitSummary(profileName, pointerPath, agentsPath string, created, skipped []string) {
+func printInitSummary(profileName, pointerPath string, pointerUnchanged bool, agentsPath string, agentsUnchanged bool, created, skipped []string) {
 	fmt.Printf("profile: %s\n", profileName)
-	fmt.Printf("wrote: %s\n", pointerPath)
-	fmt.Printf("wrote: %s\n", agentsPath)
+	printWroteOrUnchanged(pointerPath, pointerUnchanged)
+	printWroteOrUnchanged(agentsPath, agentsUnchanged)
 	for _, c := range created {
 		fmt.Printf("created: %s\n", c)
 	}
 	for _, s := range skipped {
 		fmt.Printf("left alone (already exists): %s\n", s)
 	}
+}
+
+func printWroteOrUnchanged(path string, unchanged bool) {
+	if unchanged {
+		fmt.Printf("unchanged: %s\n", path)
+		return
+	}
+	fmt.Printf("wrote: %s\n", path)
 }
