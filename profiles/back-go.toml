@@ -1,0 +1,12 @@
+name = "back-go"
+description = "Go HTTP services and APIs, greenfield and legacy - not CLIs or one-shot jobs"
+persona = "default"                       # personas/<persona>.md
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "go-verify", "back-go", "aws-guard",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "gofmt -l .; go vet ./...; go test ./...; go test -race ./..."

@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1.1)
+# Toolbox — Requirements (v1.2)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11  
-Date: 2026-09-11  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12  
+Date: 2026-09-12  
 Command: `tb`  
-Source of truth for this product: this file. v1 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections at the end (ADR 0005). Design and tasks for the delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1 and v1.1 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections at the end (ADR 0007). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -294,3 +294,64 @@ On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
 6. `skills/review/SKILL.md` exists with `name`/`description` frontmatter; both profiles list `review` after `handoff`.
 
 M1 is a follow-up, not a v1.1 gate (v1 already proved both machines).
+
+## 17. Delta from v1.1 (v1.2)
+
+Additive. Does not rewrite §3; the `back-go` bullet there is history. Versioning and the third profile: ADR 0007. Remaining v1 non-goals stay non-goals.
+
+### 17.1 Third profile
+
+§6.1 is amended: three profiles.
+
+| Profile | Use |
+|---|---|
+| `rust-systems` | Systems / low-level Rust, including greenfield and legacy crates |
+| `infra-go` | Go CLIs, scripts, AWS/infra glue, one-shot jobs — not long-running HTTP backends |
+| `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs |
+
+`back-go` is no longer deferred. `infra-go` does not absorb HTTP.
+
+### 17.2 Domain skills (`back-go`)
+
+Process skills are unchanged from §15.2 (six, including `review` after `handoff`).
+
+`back-go` also includes:
+
+- `go-verify` — the same recipe as §15.4 (`gofmt -l .`; `go vet ./...`; `go test ./...`; `go test -race ./...`). One recipe, two Go profiles. No second verify skill.
+- `back-go` — request context is the deadline; graceful shutdown; errors map at the HTTP edge; structured logs with no secrets; parameterized SQL and explicit migrations. Does not name a router, ORM, or migrator (product ADR).
+- `aws-guard` — unchanged; backends carry connection strings and secrets even when the diff does not mention AWS.
+
+Mutual skip: `infra-go` skips the listen loop (use `back-go`); `back-go` skips short-lived CLIs, jobs, and AWS/infra glue (use `infra-go`).
+
+### 17.3 `tb init` profile names
+
+§8.2 is amended: require a profile name `rust-systems`, `infra-go`, or `back-go`. Discovery of profile files on disk is not in this increment.
+
+### 17.4 House style (`back-go`)
+
+Five rules, same bar as `infra-go` / `rust-systems`. Changing any at repo scope is an ADR.
+
+1. Request context is the deadline — `r.Context()`; every blocking call honours it; do not store a context in a struct; server and client timeouts are set. `ListenAndServe` defaults are not acceptable.
+2. Graceful shutdown — SIGINT/SIGTERM → `http.Server.Shutdown` with a bounded context. No `os.Exit` from a handler. `http.ErrServerClosed` is success.
+3. Errors map at the HTTP edge — internal layers return `error`; one mapper at the boundary; never panic on request input; wrap with `%w`; do not ignore `error`; do not leak internal strings to clients.
+4. Structured logs, no secrets — method, path, status, duration, request id. Never Authorization, cookies, passwords, tokens, or connection strings. In a long-running service stdout and stderr are both diagnostics (the CLI "stdout is the result" rule does not apply). Secrets in the repo remain `aws-guard`.
+5. Parameterized SQL, explicit migrations — bound parameters only; schema changes are migration files applied by a named command, not auto-migrate on boot in prod; a transaction has one owner. Default listen/config/DSN is local/dev; prod is named.
+
+Auth, OpenAPI, health/ready, pagination, and middleware catalogs are not house style. Product ADRs if needed.
+
+### 17.5 Version stamp
+
+`tb init` / `tb init --force` writes `toolbox_version = "1.2.0"`. This repo's `schema_version` stays `"1"`.
+
+## 18. Acceptance (v1.2 done when)
+
+On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
+
+1. `tb init -p back-go` in a fresh Go module writes `toolbox.toml` with `profile = "back-go"` and `toolbox_version = "1.2.0"`; `AGENTS.md` has `Profile: back-go`, `review` and `back-go` on `Skills:`, and `Verify:` matching the `go-verify` recipe.
+2. `tb init --force` in an existing rust-systems fixture and an infra-go fixture writes `toolbox_version = "1.2.0"`; prose outside the managed-region markers is unchanged; the profile line does not change unless `-p` names a different profile.
+3. `tb install` links `back-go` into `~/.claude/skills` and `~/.grok/skills`.
+4. `tb doctor` is still clean aside from a genuinely missing agent (exit 0 with both present); with cwd profile `back-go` it warns on missing `go`, not on missing `cargo`.
+5. `skills/back-go/SKILL.md` exists with `name`/`description` frontmatter and exactly the five house-style headings in §17.4.
+6. `go-verify` command block is unchanged from §15.4; its description names both Go profiles. `infra-go` and `review` skill bodies mention `back-go`. `profiles/back-go.toml` lists `review` after `handoff` and domain skills `go-verify`, `back-go`, `aws-guard`.
+
+M1 is a follow-up, not a v1.2 gate.

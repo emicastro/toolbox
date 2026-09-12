@@ -8,9 +8,9 @@ own `docs/` (including ADRs).
 Toolbox is not an MCP server, not a daemon, not a marketplace, and not part
 of any product crate.
 
-Source of truth for v1.1: [`docs/requirements.md`](docs/requirements.md).
+Source of truth for v1.2: [`docs/requirements.md`](docs/requirements.md).
 How it is built: [`docs/design.md`](docs/design.md). Recorded forks:
-[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.1.0"`.
+[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.2.0"`.
 
 ## What it does
 
@@ -68,7 +68,7 @@ linked in the error case.
 From inside a git repository:
 
 ```sh
-tb init -p rust-systems   # or: tb init -p infra-go
+tb init -p rust-systems   # or -p infra-go, or -p back-go
 ```
 
 This writes `toolbox.toml` (the profile pointer), renders `AGENTS.md`, and
@@ -85,9 +85,8 @@ Re-running `tb init` on a repo that already has `AGENTS.md` /
 | Bytes already match | no prompt; prints `unchanged:` | same | same |
 
 `--force` never rewrites ADR bodies or other `docs/` files that already
-exist. It does refresh the managed region, including the v1.1 binding
-rules and the `Skills:` line (`review` is a process skill in both
-profiles).
+exist. It does refresh the managed region, including the binding rules
+and the `Skills:` line (`review` is a process skill in every profile).
 
 ## Commands
 
@@ -105,16 +104,17 @@ failure, `2` usage error.
 `tb doctor` only hard-fails when **zero** agents are detected. Missing skill
 links and a missing `cargo`/`go` are warnings.
 
-## Profiles (v1.1)
+## Profiles (v1.2)
 
 | Profile | Use | Extra skills |
 |---|---|---|
 | `rust-systems` | Systems / low-level Rust, greenfield and legacy | `rust-verify`, `rust-systems` |
 | `infra-go` | Go CLIs, scripts, AWS/infra glue — not long-running HTTP backends | `go-verify`, `infra-go`, `aws-guard` |
+| `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs | `go-verify`, `back-go`, `aws-guard` |
 
-Both profiles include the process skills `spec`, `adr`, `onboard`, `scout`,
-`handoff`, `review`. `review` is the last gate after verify, before ticking
-a task. There is no `back-go` profile.
+All three profiles include the process skills `spec`, `adr`, `onboard`,
+`scout`, `handoff`, `review`. `review` is the last gate after verify,
+before ticking a task.
 
 Verify recipes live in `rust-verify` / `go-verify`. The agent runs those
 commands in its own shell. There is no `tb verify`.
@@ -137,11 +137,20 @@ go test ./...
 go test -race ./...
 ```
 
+`back-go`:
+
+```sh
+gofmt -l .          # must print nothing
+go vet ./...
+go test ./...
+go test -race ./...
+```
+
 ## Layout
 
 ```
 $TOOLBOX_HOME/          # this repo (default ~/toolbox)
-  profiles/             # rust-systems.toml, infra-go.toml
+  profiles/             # rust-systems.toml, infra-go.toml, back-go.toml
   personas/default.md
   skills/<name>/SKILL.md
   templates/            # files tb init copies if missing
@@ -187,7 +196,7 @@ CI on `cmd/tb/**` runs `gofmt -l`, `go vet ./...`, and `go test ./...`. The
 module is under `cmd/tb/` so those tools never walk `skills/` or
 `profiles/`. `tb` has no third-party Go dependencies (ADR 0001).
 
-## Not in v1.1
+## Not in v1.2
 
 MCP, a local daemon, automatic agent memory, extra agents (Cursor, Codex,
 …), a persona-switch CLI, per-repo skill enable/disable, wrapping verify as

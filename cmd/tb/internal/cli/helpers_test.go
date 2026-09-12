@@ -43,6 +43,15 @@ templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
 [verify]
 summary = "go test ./..."
 `)
+	writeFile(t, filepath.Join(home, "profiles", "back-go.toml"), `name = "back-go"
+description = "fixture"
+persona = "default"
+skills = ["spec", "adr"]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "go test ./..."
+`)
 
 	writeFile(t, filepath.Join(home, "templates", "AGENTS.md"), ""+
 		beginMarkerForTest+"\n"+

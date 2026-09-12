@@ -1,13 +1,13 @@
 ---
 name: go-verify
-description: Use before claiming any task done in an `infra-go` repo, and after every change to Go code, CI, scripts, IaC, or SQL — this is the verify recipe (`gofmt -l .`; `go vet ./...`; `go test ./...`; `go test -race ./...`); skip only for edits that touch none of those.
+description: Use before claiming any task done in an `infra-go` or `back-go` repo, and after every change to Go code, CI, scripts, IaC, or SQL — this is the verify recipe (`gofmt -l .`; `go vet ./...`; `go test ./...`; `go test -race ./...`); skip only for edits that touch none of those.
 ---
 
 # go-verify
 
-The `infra-go` verify recipe. Run it in your own shell; success is the
-command output, not an assertion. There is no `tb verify` wrapper — `tb`
-does not shell out to `go`.
+The Go verify recipe (`infra-go` and `back-go` profiles). Run it in your
+own shell; success is the command output, not an assertion. There is no
+`tb verify` wrapper — `tb` does not shell out to `go`.
 
 ## Commands
 

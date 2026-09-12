@@ -69,6 +69,28 @@ func TestDoctor_ReportsMissingToolboxHomeWithoutHardExit(t *testing.T) {
 	}
 }
 
+func TestDoctor_BackGoWarnsOnMissingGoNotCargo(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	t.Setenv("HOME", t.TempDir())
+	// PATH has agents but neither go nor cargo, so the toolchain warning
+	// is deterministic regardless of the host's real PATH.
+	withFakeAgentsOnPath(t, "claude", "grok")
+	t.Chdir(t.TempDir())
+
+	stdout, _, code := captureOutput(t, func() int {
+		return Doctor(toolboxHome, nil, []string{"-p", "back-go"})
+	})
+	if code != 0 {
+		t.Errorf("Doctor() code = %d, want 0", code)
+	}
+	if !strings.Contains(stdout, "warn: go not found on PATH") {
+		t.Errorf("stdout = %q, want a missing-go warning for back-go", stdout)
+	}
+	if strings.Contains(stdout, "cargo") {
+		t.Errorf("stdout = %q, want no cargo warning for back-go", stdout)
+	}
+}
+
 func TestDoctor_SkipsCwdProfileStepsWithoutToolboxTOML(t *testing.T) {
 	toolboxHome := newFixtureToolboxHome(t)
 	t.Setenv("HOME", t.TempDir())

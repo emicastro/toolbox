@@ -1,6 +1,6 @@
 ---
 name: infra-go
-description: Use when writing or reviewing Go CLIs, one-shot jobs, scripts, or AWS/infra glue — anything touching exit codes, where logs go, cancellation, or which account a command acts on; skip for long-running HTTP service code, which this profile deliberately does not cover.
+description: Use when writing or reviewing Go CLIs, one-shot jobs, scripts, or AWS/infra glue — anything touching exit codes, where logs go, cancellation, or which account a command acts on; skip for long-running HTTP service code (use the `back-go` skill).
 ---
 
 # infra-go

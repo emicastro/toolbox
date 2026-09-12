@@ -1,12 +1,13 @@
-# Toolbox — Design (v1.1)
+# Toolbox — Design (v1.2)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11
-Date: 2026-09-11
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12
+Date: 2026-09-12
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
-delta in requirements §15. It does not restate rationale already recorded
-in `docs/adr/000{1,2,3,4,5,6}-*.md` — those are cited, not re-argued.
-v1 sections below stay as accepted; v1.1 is §14 onward.
+delta in requirements §15 and the v1.2 delta in requirements §17. It does
+not restate rationale already recorded in
+`docs/adr/000{1,2,3,4,5,6,7}-*.md` — those are cited, not re-argued.
+v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16 onward.
 
 ## 1. Path resolution
 
@@ -526,3 +527,92 @@ Documented in the skill files (group 8), matching requirements §15.3 and
 | 6. `review` skill + both profiles list it after `handoff` | §14.2 |
 
 No item in requirements §16 lacks a mechanism above.
+
+## 16. v1.2 third profile `back-go`
+
+Requirements §17. Versioning and the promotion of the deferred profile:
+ADR 0007. No new `tb` subcommands. `schema_version` stays `"1"`.
+`tbVersion` becomes `"1.2.0"`. Profile files are still the §3.3 schema.
+Init does not discover profiles on disk — the usage list grows by one
+hardcoded name.
+
+### 16.1 Tree and profile file
+
+`$TOOLBOX_HOME/profiles/` also contains `back-go.toml`. `$TOOLBOX_HOME/skills/`
+also contains `back-go/SKILL.md`. `tb install` already links every
+`skills/*/SKILL.md`; no install-path change.
+
+`profiles/back-go.toml`:
+
+```toml
+name = "back-go"
+description = "Go HTTP services and APIs, greenfield and legacy - not CLIs or one-shot jobs"
+persona = "default"
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "go-verify", "back-go", "aws-guard",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "gofmt -l .; go vet ./...; go test ./...; go test -race ./..."
+```
+
+`review` after `handoff`. Domain skills and verify summary match
+requirements §17.2 / §15.4. `aws-guard` is in the pack because backends
+carry secrets; the skill body is not restated in `back-go`.
+
+### 16.2 Init usage and doctor toolchain
+
+§5.2 step 1 usage becomes
+`usage: tb init -p <rust-systems|infra-go|back-go> [--force]`.
+`LoadProfileByName` is unchanged.
+
+§5.3 step 6: if the profile is `rust-systems`, warn when `cargo` is not
+on PATH; if `infra-go` or `back-go`, warn when `go` is not on PATH.
+
+### 16.3 House-style skill
+
+`skills/back-go/SKILL.md` frontmatter `name` + `description`. Description
+must trigger on Go HTTP / listen loop / database work and skip CLIs,
+jobs, and AWS/infra glue (point at `infra-go`). Body: exactly five `##`
+headings, wording matching requirements §17.4:
+
+1. Request context is the deadline
+2. Graceful shutdown
+3. Errors map at the HTTP edge
+4. Structured logs, no secrets
+5. Parameterized SQL, explicit migrations
+
+The skill does not name a router, ORM, or migrator. Changing any of the
+five at repo scope is an ADR in that product (`adr` skill).
+
+`infra-go` description skip for HTTP points at `back-go`. `go-verify`
+description names both Go profiles; its command block is unchanged.
+`review` house-style pass loads `rust-systems` / `infra-go` / `back-go`
+(and `aws-guard` when the diff touches AWS or secrets).
+
+### 16.4 Tests
+
+- `TestRealProfilesParse` includes `back-go` next to the two v1 names.
+- CLI fixture `newFixtureToolboxHome` ships a minimal `profiles/back-go.toml`
+  so `Init(..., []string{"-p", "back-go"})` is testable.
+- An init test: empty git repo, `-p back-go`, `toolbox.toml` contains
+  `profile = "back-go"` and `AGENTS.md` contains `Profile: back-go`.
+- Doctor's toolchain branch for `back-go` is the `go` path, not `cargo`.
+
+No parser, render, install, or schema tests change shape.
+
+## 17. Traceability: v1.2 acceptance → design mechanism
+
+| Requirements §18 item | Mechanism |
+|---|---|
+| 1. `tb init -p back-go` writes pointer 1.2.0 + region with `back-go` / `review` / Go verify | §16.1, §16.2, `tbVersion`, §4 render |
+| 2. `--force` on rust-systems / infra-go stamps 1.2.0; outside markers intact; profile unchanged unless `-p` | ADR 0002 merge, `tbVersion` |
+| 3. `tb install` links `back-go` | §5.1, `skills/back-go/` |
+| 4. `tb doctor` exit 0 with both agents; `back-go` warns on `go` not `cargo` | §5.3, §7, §16.2 |
+| 5. `back-go` skill has `name`/`description` and the five §17.4 headings | §16.3 |
+| 6. `go-verify` commands unchanged; pointers in `go-verify` / `infra-go` / `review`; profile skill list | §16.1, §16.3, §14.3 |
+
+No item in requirements §18 lacks a mechanism above.

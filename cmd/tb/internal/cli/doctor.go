@@ -154,7 +154,7 @@ func reportToolchain(profileName string) {
 		if _, err := exec.LookPath("cargo"); err != nil {
 			fmt.Println("warn: cargo not found on PATH")
 		}
-	case "infra-go":
+	case "infra-go", "back-go":
 		if _, err := exec.LookPath("go"); err != nil {
 			fmt.Println("warn: go not found on PATH")
 		}

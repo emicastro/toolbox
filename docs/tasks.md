@@ -1,7 +1,7 @@
-# Toolbox — Tasks (v1.1)
+# Toolbox — Tasks (v1.2)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11
-Date: 2026-09-11
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12
+Date: 2026-09-12
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
 or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
@@ -209,10 +209,80 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 - [x] **11.3** `tb doctor` exit 0 with both agents present. Check: exit
       code and skill lines include `review` as `ok`.
 
-## Explicitly out of scope for these tasks
+## Explicitly out of scope for groups 1–11
 
-Per requirements §3 and §15: no MCP server, no `tb verify` wrapper, no
-third profile (`back-go`), no per-repo skill add/rm CLI, no persona switch
-CLI, no other agents beyond Claude Code and Grok Build, no `staticcheck` /
-`cargo deny` / `govulncheck` as required tools. Do not add tasks for any
-of these without a new ADR recording why the non-goal changed.
+Per requirements §3 and §15 as of v1.1: no MCP server, no `tb verify`
+wrapper, no third profile (`back-go`), no per-repo skill add/rm CLI, no
+persona switch CLI, no other agents beyond Claude Code and Grok Build, no
+`staticcheck` / `cargo deny` / `govulncheck` as required tools.
+
+## Group 12 — Spec (v1.2)
+
+- [x] **12.1** ADR `docs/adr/0007-back-go-profile-is-v1.2.md` as `proposed`
+      (skill-only v1.1 vs third profile v1.2 vs third profile v2).
+      Check: file exists, four MADR sections, three named options,
+      Decision is v1.2 + third profile.
+- [x] **12.2** `docs/requirements.md` header v1.2; v1 and v1.1 body
+      unchanged; §17 delta + §18 acceptance. Check: every §18 item is a
+      line you can fail; `rg 'back-go' docs/requirements.md` shows the v1
+      non-goal *and* the promotion in the delta.
+- [x] **12.3** `docs/design.md` §16–§17 cite 0007 and map §18 → mechanism.
+      Check: traceability table has one row per §18 item.
+- [x] **12.4** User marks 0007 `accepted` (and this file's v1.2 groups
+      accepted). Check: ADR header says `Status: accepted`. Do not start
+      Group 13 until this box is ticked.
+
+## Group 13 — Content (v1.2)
+
+- [x] **13.1** `profiles/back-go.toml` per design §16.1. Check:
+      `rg 'go-verify", "back-go", "aws-guard' profiles/back-go.toml`;
+      `rg 'handoff", "review' profiles/back-go.toml`.
+- [x] **13.2** `skills/back-go/SKILL.md` per design §16.3. Check:
+      frontmatter `name: back-go`; `rg '^## ' skills/back-go/SKILL.md`
+      prints exactly the five headings in requirements §17.4.
+- [x] **13.3** Pointers in `go-verify`, `infra-go`, `review` per design
+      §16.3. Check: `rg 'back-go' skills/go-verify/SKILL.md
+      skills/infra-go/SKILL.md skills/review/SKILL.md` matches all three;
+      `go-verify` command block still matches requirements §15.4.
+
+## Group 14 — Binary stamp (v1.2)
+
+- [x] **14.1** `const tbVersion = "1.2.0"` in
+      `cmd/tb/internal/cli/init.go`; init usage lists `back-go`; doctor
+      treats `back-go` like `infra-go` for `go` on PATH; tests per design
+      §16.4. Check: `rg 'tbVersion' cmd/tb` shows `1.2.0`;
+      `cd cmd/tb && go test ./internal/config/ ./internal/cli/` covers
+      `TestRealProfilesParse` and init `-p back-go`.
+- [x] **14.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+      `go test ./...`; `go test -race ./...`. Check: all four pass.
+
+## Group 15 — README
+
+- [x] **15.1** `README.md` lists three profiles, `tb init -p back-go`,
+      version 1.2.0; drop “There is no `back-go` profile”. Check: the
+      profiles table has exactly three rows; `back-go` verify block
+      matches `infra-go`.
+
+## Group 16 — Acceptance (requirements §18, run manually on Arch)
+
+- [x] **16.1** `tb init -p back-go` in a fresh Go module: pointer
+      `profile = "back-go"` and `toolbox_version = "1.2.0"`; `AGENTS.md`
+      has `Profile: back-go`, `review` and `back-go` on `Skills:`,
+      `Verify:` matching `go-verify`. Check: file contents.
+- [x] **16.2** `tb init --force` in a rust-systems fixture and an
+      infra-go fixture: version stamp 1.2.0; prose outside markers
+      unchanged; profile unchanged unless `-p`. Check: `git diff` / file
+      contents.
+- [x] **16.3** `tb install` links `back-go` into both agent skill dirs.
+      Check: `readlink ~/.claude/skills/back-go` and
+      `~/.grok/skills/back-go`.
+- [x] **16.4** `tb doctor` exit 0 with both agents; cwd profile `back-go`
+      warns on missing `go`, not `cargo`. Check: exit code and output.
+
+## Explicitly out of scope for groups 12–16
+
+Per requirements §17 and ADR 0007: no MCP server, no `tb verify` wrapper,
+no per-repo skill add/rm CLI, no persona switch CLI, no other agents, no
+`staticcheck` / `govulncheck` as required tools, no lock of router/ORM/
+migrator in the `back-go` skill, no fourth profile. Do not add tasks for
+any of these without a new ADR.
