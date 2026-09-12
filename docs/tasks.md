@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.1)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 group 7 accepted 2026-09-11; groups 8–11 pending
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–8 accepted 2026-09-11; groups 9–11 pending
 Date: 2026-09-11
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -166,16 +166,16 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 8 — Content (v1.1)
 
-- [ ] **8.1** `templates/AGENTS.md` rules block per ADR 0006. Check: all
+- [x] **8.1** `templates/AGENTS.md` rules block per ADR 0006. Check: all
       five rules present between the markers; no new `{{.Field}}`.
-- [ ] **8.2** `personas/default.md`: same five rules; Implement names
+- [x] **8.2** `personas/default.md`: same five rules; Implement names
       `review` as the last gate. Check: both `##` headings still parse as
       Plan / Implement titles.
-- [ ] **8.3** `skills/review/SKILL.md` per design §14.2. Check: frontmatter
+- [x] **8.3** `skills/review/SKILL.md` per design §14.2. Check: frontmatter
       `name: review`; skip only when this session produced no diff.
-- [ ] **8.4** Both `profiles/*.toml`: `review` after `handoff`; `[verify].summary`
+- [x] **8.4** Both `profiles/*.toml`: `review` after `handoff`; `[verify].summary`
       matches design §14.3. Check: `rg 'handoff", "review' profiles/`.
-- [ ] **8.5** Process + verify + house-style + `aws-guard` skill bodies
+- [x] **8.5** Process + verify + house-style + `aws-guard` skill bodies
       per requirements §15.3–§15.5. Check: `rg 'or \`AGENTS.md\`' skills/`
       prints nothing; `go-verify` lists `go vet ./...` and `go test -race ./...`;
       `rust-verify` lists `cargo fmt --check`, `clippy --all-targets`, and

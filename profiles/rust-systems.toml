@@ -2,11 +2,11 @@ name = "rust-systems"
 description = "Systems / low-level Rust, greenfield and legacy"
 persona = "default"                       # personas/<persona>.md
 skills = [
-  "spec", "adr", "onboard", "scout", "handoff",
+  "spec", "adr", "onboard", "scout", "handoff", "review",
   "rust-verify", "rust-systems",
 ]
 templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
              "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
 
 [verify]
-summary = "cargo test; cargo clippy -- -D warnings; miri when unsafe changed"
+summary = "cargo fmt --check; cargo test; cargo clippy --all-targets -- -D warnings; miri when the changed crate has unsafe"

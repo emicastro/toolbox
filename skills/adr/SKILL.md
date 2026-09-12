@@ -1,6 +1,6 @@
 ---
 name: adr
-description: Use before treating any design fork as settled — two or more viable options, a dependency or library choice, a file/schema/protocol shape, or a reversal of an earlier decision; skip for implementation details already covered by an accepted ADR.
+description: Use before treating any design fork as settled — two or more viable options, a dependency or library choice, a file/schema/protocol shape, or a reversal of an earlier decision; skip for implementation details already covered by an accepted ADR. Options must be viable, not strawmen. Classifying a fork as an "implementation detail" to avoid an ADR is itself a fork.
 ---
 
 # adr
@@ -8,7 +8,8 @@ description: Use before treating any design fork as settled — two or more viab
 An Architecture Decision Record is **mandatory** in both profiles before a
 fork is treated as decided. If you catch yourself writing "we'll use X"
 in `docs/design.md` and X had a real alternative, stop and write the ADR
-first.
+first. Options must be viable, not strawmen. Classifying a fork as an
+"implementation detail" to avoid an ADR is itself a fork.
 
 ## Shape
 

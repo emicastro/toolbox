@@ -1,13 +1,14 @@
 ---
 name: onboard
-description: Use on the first session in a brownfield repo the user has not worked in yet, when you need its layout, entry points, build and verify commands, and local conventions before touching anything; skip in a repo already mapped by an up-to-date `docs/session.md` or `AGENTS.md`.
+description: Use on the first session in a brownfield repo the user has not worked in yet, when you need its layout, entry points, build and verify commands, and local conventions before touching anything; skip only when `docs/session.md` already contains an onboard map for this repo (shape, entry points, verify, conventions) and the area of work has not drifted. `AGENTS.md` existing is not a map.
 ---
 
 # onboard
 
 Map the repo before changing it. Read-only pass, cheap tools first (use the
 `scout` skill for the searching itself), ending in a written map — not in a
-diff.
+diff. `AGENTS.md` existing is not a map; after `tb init` that file is only
+the managed region.
 
 ## Pass
 

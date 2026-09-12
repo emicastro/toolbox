@@ -18,12 +18,12 @@ unless an explicit one carries meaning.
 
 ## No `unwrap` in libraries
 
-Library code returns `Result`; it does not `unwrap`, `expect`, or panic on
-input it did not produce. Define an error type (or use the crate's existing
-one) and propagate with `?`. `unwrap` is acceptable only in tests, in
-`main`/binary top level, and on an invariant the surrounding code just
-established — and there it gets `expect("<why this cannot fail>")`, not a
-bare `unwrap`.
+Library code returns `Result`; it does not `unwrap`, `expect`, `todo!`,
+`unimplemented!`, or `panic!` on input it did not produce. Define an error
+type (or use the crate's existing one) and propagate with `?`. `unwrap` is
+acceptable only in tests, in `main`/binary top level, and on an invariant
+the surrounding code just established — and there it gets
+`expect("<why this cannot fail>")`, not a bare `unwrap`.
 
 ## Explicit concurrency
 

@@ -15,7 +15,9 @@ bridge, not a log.
   which checkboxes were ticked this session.
 - **Done** — what actually changed on disk, with paths. Committed or not.
 - **Verify status** — the profile's verify recipe: run, passing, failing
-  with which output. "Not run" is a valid and useful answer.
+  with which output. "Not run" is **not** allowed if this session edited
+  code; run the recipe or say it failed. "Not run" is valid only when the
+  session produced no code (or CI/script/IaC/SQL) diff.
 - **Next** — the single next action, concrete enough to start cold.
 - **Open questions / blockers** — decisions the next session must not
   silently make. Anything that is a design fork goes to an ADR

@@ -22,9 +22,11 @@ the spec, do not implement past the list you are producing.
    skill), and design.md references `docs/adr/NNNN-title.md` instead of
    repeating the rationale.
 3. **`docs/tasks.md`** — numbered groups, each task scoped to one Implement
-   session and ending in a runnable check (`Check:` line stating the command
-   or the diff that proves it). Checkboxes `- [ ]`, ticked only by the
-   session that finishes the task.
+   session and ending in a runnable check. The `Check:` line must be a
+   command whose non-zero exit fails the task, or a byte-level before/after
+   assertion. "File exists" is valid only when the whole task is creating
+   that file. Checkboxes `- [ ]`, ticked only by the session that finishes
+   the task.
 
 ## Rules
 

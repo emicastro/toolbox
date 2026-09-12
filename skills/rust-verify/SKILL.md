@@ -1,6 +1,6 @@
 ---
 name: rust-verify
-description: Use before claiming any task done in a `rust-systems` repo, and after every change to Rust code — this is the verify recipe (`cargo test`; `cargo clippy -- -D warnings`; Miri when `unsafe` is in the change); skip only for edits that touch no Rust source.
+description: Use before claiming any task done in a `rust-systems` repo, and after every change to Rust code, CI, scripts, IaC, or SQL — this is the verify recipe (`cargo fmt --check`; `cargo test`; `cargo clippy --all-targets -- -D warnings`; Miri when the changed crate has `unsafe`); skip only for edits that touch none of those.
 ---
 
 # rust-verify
@@ -12,31 +12,39 @@ will be — `tb` does not shell out to `cargo`.
 ## Commands
 
 ```sh
+cargo fmt --check
 cargo test
-cargo clippy -- -D warnings
+cargo clippy --all-targets -- -D warnings
 ```
 
-And, when `unsafe` is in the change:
+If `cargo fmt --check` fails, format, include the formatting in the diff,
+and re-run `--check`.
 
-```sh
-cargo miri test
-```
+Workspace repos: `cargo test --workspace` and
+`cargo clippy --workspace --all-targets -- -D warnings` when the change
+crosses crate boundaries.
 
-Miri is required whenever the diff adds, moves, or modifies an `unsafe`
-block or an `unsafe fn` — not only when new `unsafe` is introduced. If Miri
-is not installed on the machine, say so explicitly instead of skipping
-silently: `rustup +nightly component add miri`.
+Touching CI, scripts, IaC, or SQL is not a skip: run this recipe, or the
+repo's own tests/CI, or report that you could not.
+
+## Miri
+
+Run `cargo miri test` when a **changed crate contains any `unsafe`** in
+its `.rs` sources, even if this diff only edits safe code in that crate.
+Skip Miri only when the changed package(s) have no `unsafe` token.
+
+If Miri is required and not installed, the recipe **fails** — do not tick
+the task. Print `rustup +nightly component add miri`. Workspace: run Miri
+on each changed crate that has `unsafe` (or `--workspace` if that still
+covers them).
 
 ## Rules
 
 - Run the full recipe before ticking a checkbox in `docs/tasks.md` or
   reporting a task complete. A green build is not verification.
-- `-D warnings` means clippy warnings are failures. Fix them; do not add
-  `#[allow(...)]` without a one-line comment saying why.
+- `-D warnings` means clippy warnings are failures. Fix them. `#[allow(...)]`
+  requires the lint name and a reason that is not "to make clippy pass".
 - Paste or summarize the actual output. Persona rule: evidence over
   narration.
 - A failing test that was already failing before your change is still a
   finding — report it, do not fold it into your diff without a task for it.
-- Workspace repos: `cargo test --workspace` and
-  `cargo clippy --workspace --all-targets -- -D warnings` when the change
-  crosses crate boundaries.

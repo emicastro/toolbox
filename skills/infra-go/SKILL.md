@@ -13,7 +13,8 @@ script around. Five rules.
 The exit code is the API. `0` success, `1` operational failure, `2` usage
 error (bad flags, missing required argument). Never exit `0` on a failed
 operation, and never print an error and fall through. Document any
-additional code in the command's help text.
+additional code in the command's help text. Do not ignore `error` (`_ =`,
+empty `if err != nil {}`). When adding context, wrap with `%w`.
 
 ## Logs to stderr, output to stdout
 

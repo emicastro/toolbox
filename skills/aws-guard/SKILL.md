@@ -1,6 +1,6 @@
 ---
 name: aws-guard
-description: Use before running, writing, or reviewing anything that talks to AWS or handles credentials — CLI invocations, SDK calls, IaC, CI steps, or a change that could put a secret in the repo; triggers on any command whose target account, profile, or region is not stated in the command itself.
+description: Use before running, writing, or reviewing anything that talks to AWS or handles credentials — CLI invocations, SDK calls, IaC, CI steps, `.env` files, keys, tokens, connection strings, or a change that could put a secret in the repo, even when the diff does not mention AWS; also any command whose target account, profile, or region is not stated in the command itself.
 ---
 
 # aws-guard
