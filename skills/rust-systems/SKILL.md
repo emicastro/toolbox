@@ -1,6 +1,6 @@
 ---
 name: rust-systems
-description: Use when writing or reviewing Rust in a systems or low-level crate — ownership and lifetime choices, error handling in library code, concurrency, FFI, or any diff that touches `unsafe`; skip for non-Rust files and for pure `cargo`/CI plumbing.
+description: Use when writing or reviewing Rust in a systems or low-level crate — ownership and lifetime choices, error handling in library code, concurrency, FFI, or any diff that touches `unsafe`; skip for Bevy `App` / gameplay (use the `game-bevy` skill), for non-Rust files, and for pure `cargo`/CI plumbing.
 ---
 
 # rust-systems

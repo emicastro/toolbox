@@ -1,0 +1,12 @@
+name = "game-bevy"
+description = "Bevy games in Rust, greenfield and legacy - not systems crates or non-Bevy engines"
+persona = "default"                       # personas/<persona>.md
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "rust-verify", "game-bevy",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "cargo fmt --check; cargo test; cargo clippy --all-targets -- -D warnings; miri when the changed crate has unsafe"

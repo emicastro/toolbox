@@ -1,13 +1,14 @@
 ---
 name: rust-verify
-description: Use before claiming any task done in a `rust-systems` repo, and after every change to Rust code, CI, scripts, IaC, or SQL — this is the verify recipe (`cargo fmt --check`; `cargo test`; `cargo clippy --all-targets -- -D warnings`; Miri when the changed crate has `unsafe`); skip only for edits that touch none of those.
+description: Use before claiming any task done in a `rust-systems` or `game-bevy` repo, and after every change to Rust code, CI, scripts, IaC, or SQL — this is the verify recipe (`cargo fmt --check`; `cargo test`; `cargo clippy --all-targets -- -D warnings`; Miri when the changed crate has `unsafe`); skip only for edits that touch none of those.
 ---
 
 # rust-verify
 
-The `rust-systems` verify recipe. Run it in your own shell; success is the
-command output, not an assertion. There is no `tb verify` wrapper and never
-will be — `tb` does not shell out to `cargo`.
+The Rust verify recipe (`rust-systems` and `game-bevy` profiles). Run it
+in your own shell; success is the command output, not an assertion. There
+is no `tb verify` wrapper and never will be — `tb` does not shell out to
+`cargo`.
 
 ## Commands
 

@@ -306,15 +306,15 @@ any of these without a new ADR.
 
 ## Group 18 — Content (v1.3)
 
-- [ ] **18.1** `profiles/game-bevy.toml` per design §18.1. Check:
+- [x] **18.1** `profiles/game-bevy.toml` per design §18.1. Check:
       `rg 'rust-verify", "game-bevy' profiles/game-bevy.toml`;
       `rg 'handoff", "review' profiles/game-bevy.toml`;
       `rg 'aws-guard|rust-systems' profiles/game-bevy.toml` does not
       match the `skills` array.
-- [ ] **18.2** `skills/game-bevy/SKILL.md` per design §18.3. Check:
+- [x] **18.2** `skills/game-bevy/SKILL.md` per design §18.3. Check:
       frontmatter `name: game-bevy`; `rg '^## ' skills/game-bevy/SKILL.md`
       prints exactly the five headings in requirements §19.4.
-- [ ] **18.3** Pointers in `rust-verify`, `rust-systems`, `review` per
+- [x] **18.3** Pointers in `rust-verify`, `rust-systems`, `review` per
       design §18.3. Check: `rg 'game-bevy' skills/rust-verify/SKILL.md
       skills/rust-systems/SKILL.md skills/review/SKILL.md` matches all
       three; `rust-verify` command block still matches requirements
