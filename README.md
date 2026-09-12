@@ -8,9 +8,9 @@ own `docs/` (including ADRs).
 Toolbox is not an MCP server, not a daemon, not a marketplace, and not part
 of any product crate.
 
-Source of truth for v1.2: [`docs/requirements.md`](docs/requirements.md).
+Source of truth for v1.3: [`docs/requirements.md`](docs/requirements.md).
 How it is built: [`docs/design.md`](docs/design.md). Recorded forks:
-[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.2.0"`.
+[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.3.0"`.
 
 ## What it does
 
@@ -68,7 +68,7 @@ linked in the error case.
 From inside a git repository:
 
 ```sh
-tb init -p rust-systems   # or -p infra-go, or -p back-go
+tb init -p rust-systems   # or -p infra-go, or -p back-go, or -p game-bevy
 ```
 
 This writes `toolbox.toml` (the profile pointer), renders `AGENTS.md`, and
@@ -104,15 +104,16 @@ failure, `2` usage error.
 `tb doctor` only hard-fails when **zero** agents are detected. Missing skill
 links and a missing `cargo`/`go` are warnings.
 
-## Profiles (v1.2)
+## Profiles (v1.3)
 
 | Profile | Use | Extra skills |
 |---|---|---|
 | `rust-systems` | Systems / low-level Rust, greenfield and legacy | `rust-verify`, `rust-systems` |
 | `infra-go` | Go CLIs, scripts, AWS/infra glue — not long-running HTTP backends | `go-verify`, `infra-go`, `aws-guard` |
 | `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs | `go-verify`, `back-go`, `aws-guard` |
+| `game-bevy` | Bevy games in Rust, greenfield and legacy — not systems crates or non-Bevy engines | `rust-verify`, `game-bevy` |
 
-All three profiles include the process skills `spec`, `adr`, `onboard`,
+All four profiles include the process skills `spec`, `adr`, `onboard`,
 `scout`, `handoff`, `review`. `review` is the last gate after verify,
 before ticking a task.
 
@@ -146,11 +147,20 @@ go test ./...
 go test -race ./...
 ```
 
+`game-bevy`:
+
+```sh
+cargo fmt --check
+cargo test
+cargo clippy --all-targets -- -D warnings
+# cargo miri test  — when the changed crate contains any unsafe
+```
+
 ## Layout
 
 ```
 $TOOLBOX_HOME/          # this repo (default ~/toolbox)
-  profiles/             # rust-systems.toml, infra-go.toml, back-go.toml
+  profiles/             # rust-systems.toml, infra-go.toml, back-go.toml, game-bevy.toml
   personas/default.md
   skills/<name>/SKILL.md
   templates/            # files tb init copies if missing
@@ -196,7 +206,7 @@ CI on `cmd/tb/**` runs `gofmt -l`, `go vet ./...`, and `go test ./...`. The
 module is under `cmd/tb/` so those tools never walk `skills/` or
 `profiles/`. `tb` has no third-party Go dependencies (ADR 0001).
 
-## Not in v1.2
+## Not in v1.3
 
 MCP, a local daemon, automatic agent memory, extra agents (Cursor, Codex,
 …), a persona-switch CLI, per-repo skill enable/disable, wrapping verify as

@@ -333,7 +333,7 @@ any of these without a new ADR.
 
 ## Group 20 — README
 
-- [ ] **20.1** `README.md` lists four profiles, `tb init -p game-bevy`,
+- [x] **20.1** `README.md` lists four profiles, `tb init -p game-bevy`,
       version 1.3.0. Check: the profiles table has exactly four rows;
       `game-bevy` verify block matches `rust-systems`.
 
