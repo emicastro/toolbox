@@ -97,6 +97,21 @@ func TestRenderAgainstRealTemplate(t *testing.T) {
 	if !HasManagedRegion(got) {
 		t.Error("Render(real template) output does not satisfy HasManagedRegion")
 	}
+
+	// ADR 0006: the real template carries the five binding rules, not
+	// titles-only. This fails if the rules block is removed from
+	// templates/AGENTS.md.
+	for _, rule := range []string{
+		"Do not implement past the accepted task list in `docs/tasks.md`.",
+		"A design fork (two viable options, a dependency, a schema/protocol shape, or reversing an ADR) needs a new ADR before it is treated as settled.",
+		"Before ticking a task or claiming done: run the profile verify recipe (success is the command output), then the `review` skill.",
+		"Keep diffs small. No drive-by refactors or unrelated formatting.",
+		"Do not assume profile defaults in a brownfield repo; map it first (`onboard`). `AGENTS.md` existing is not a map.",
+	} {
+		if !strings.Contains(got, rule) {
+			t.Errorf("Render(real template) missing binding rule %q\noutput:\n%s", rule, got)
+		}
+	}
 }
 
 func TestMergeNoExistingFile(t *testing.T) {

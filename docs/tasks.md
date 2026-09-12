@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.1)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–8 accepted 2026-09-11; groups 9–11 pending
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–9 accepted 2026-09-11; groups 10–11 pending
 Date: 2026-09-11
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -183,12 +183,12 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 9 — Binary stamp
 
-- [ ] **9.1** `const tbVersion = "1.1.0"` in `cmd/tb/internal/cli/init.go`.
+- [x] **9.1** `const tbVersion = "1.1.0"` in `cmd/tb/internal/cli/init.go`.
       Check: `rg 'tbVersion' cmd/tb` shows `1.1.0`.
-- [ ] **9.2** `TestRenderAgainstRealTemplate` asserts the rules block is
+- [x] **9.2** `TestRenderAgainstRealTemplate` asserts the rules block is
       in the rendered region. Check: `cd cmd/tb && go test ./internal/render/`
       fails if the five rules are removed from the template.
-- [ ] **9.3** `gofmt -l .` silent; `go vet ./...`; `go test ./...` from
+- [x] **9.3** `gofmt -l .` silent; `go vet ./...`; `go test ./...` from
       `cmd/tb`. Check: all three pass.
 
 ## Group 10 — Toolbox-own + README

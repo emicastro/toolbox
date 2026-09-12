@@ -14,7 +14,7 @@ import (
 
 // tbVersion is written into a product repo's toolbox.toml
 // (toolbox_version, docs/design.md §3.2) — informational only.
-const tbVersion = "0.1.0"
+const tbVersion = "1.1.0"
 
 // Init implements `tb init` (docs/design.md §5.2).
 func Init(toolboxHome string, args []string) int {
