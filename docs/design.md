@@ -1,13 +1,15 @@
-# Toolbox — Design (v1.2)
+# Toolbox — Design (v1.3)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12
 Date: 2026-09-12
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
-delta in requirements §15 and the v1.2 delta in requirements §17. It does
+delta in requirements §15, the v1.2 delta in requirements §17, and the
+v1.3 delta in requirements §19. It does
 not restate rationale already recorded in
-`docs/adr/000{1,2,3,4,5,6,7}-*.md` — those are cited, not re-argued.
-v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16 onward.
+`docs/adr/000{1,2,3,4,5,6,7,8}-*.md` — those are cited, not re-argued.
+v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16–§17;
+v1.3 is §18 onward.
 
 ## 1. Path resolution
 
@@ -616,3 +618,100 @@ No parser, render, install, or schema tests change shape.
 | 6. `go-verify` commands unchanged; pointers in `go-verify` / `infra-go` / `review`; profile skill list | §16.1, §16.3, §14.3 |
 
 No item in requirements §18 lacks a mechanism above.
+
+## 18. v1.3 fourth profile `game-bevy`
+
+Requirements §19. Versioning and the new profile: ADR 0008. No new `tb`
+subcommands. `schema_version` stays `"1"`. `tbVersion` becomes `"1.3.0"`.
+Profile files are still the §3.3 schema. Init does not discover profiles
+on disk — the usage list grows by one hardcoded name.
+
+### 18.1 Tree and profile file
+
+`$TOOLBOX_HOME/profiles/` also contains `game-bevy.toml`.
+`$TOOLBOX_HOME/skills/` also contains `game-bevy/SKILL.md`. `tb install`
+already links every `skills/*/SKILL.md`; no install-path change.
+
+`profiles/game-bevy.toml`:
+
+```toml
+name = "game-bevy"
+description = "Bevy games in Rust, greenfield and legacy - not systems crates or non-Bevy engines"
+persona = "default"
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "rust-verify", "game-bevy",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "cargo fmt --check; cargo test; cargo clippy --all-targets -- -D warnings; miri when the changed crate has unsafe"
+```
+
+`review` after `handoff`. Domain skills and verify summary match
+requirements §19.2 / §15.4. No `aws-guard`. No `rust-systems` on this
+array.
+
+### 18.2 Init usage and doctor toolchain
+
+§5.2 step 1 usage becomes
+`usage: tb init -p <rust-systems|infra-go|back-go|game-bevy> [--force]`.
+`LoadProfileByName` is unchanged.
+
+§5.3 step 6: if the profile is `rust-systems` or `game-bevy`, warn when
+`cargo` is not on PATH; if `infra-go` or `back-go`, warn when `go` is
+not on PATH.
+
+### 18.3 House-style skill
+
+`skills/game-bevy/SKILL.md` frontmatter `name` + `description`.
+Description must trigger on Bevy / ECS gameplay / `App` work and skip
+systems crates, libraries, and non-Bevy engines (point at
+`rust-systems`). Body: exactly five `##` headings, wording matching
+requirements §19.4:
+
+1. ECS is the architecture
+2. Panic on broken world invariants; `Result` for I/O
+3. The schedule is the concurrency model
+4. Handles and components are values
+5. Do not block the frame
+
+The skill does not name a Bevy version, physics crate, net crate, or UI
+crate. Changing any of the five at repo scope is an ADR in that product
+(`adr` skill). `[profile.dev]` opt-level is product convention, not a
+sixth heading.
+
+`rust-systems` description skip for Bevy `App` / gameplay points at
+`game-bevy`. `rust-verify` description names both Rust profiles; its
+command block is unchanged. `review` house-style pass loads
+`rust-systems` / `infra-go` / `back-go` / `game-bevy` (and `aws-guard`
+when the diff touches AWS or secrets).
+
+### 18.4 Tests
+
+- `TestRealProfilesParse` includes `game-bevy` next to the three earlier
+  names.
+- CLI fixture `newFixtureToolboxHome` ships a minimal
+  `profiles/game-bevy.toml` so `Init(..., []string{"-p", "game-bevy"})`
+  is testable.
+- An init test: empty git repo, `-p game-bevy`, `toolbox.toml` contains
+  `profile = "game-bevy"` and `AGENTS.md` contains `Profile: game-bevy`.
+- Doctor's toolchain branch for `game-bevy` is the `cargo` path, not
+  `go`.
+- The init usage-string test asserts `game-bevy` is listed.
+
+No parser, render, install, or schema tests change shape.
+
+## 19. Traceability: v1.3 acceptance → design mechanism
+
+| Requirements §20 item | Mechanism |
+|---|---|
+| 1. `tb init -p game-bevy` writes pointer 1.3.0 + region with `game-bevy` / `review` / no `rust-systems` / Rust verify | §18.1, §18.2, `tbVersion`, §4 render |
+| 2. `--force` on rust-systems / infra-go / back-go stamps 1.3.0; outside markers intact; profile unchanged unless `-p` | ADR 0002 merge, `tbVersion` |
+| 3. `tb install` links `game-bevy` | §5.1, `skills/game-bevy/` |
+| 4. `tb doctor` exit 0 with both agents; `game-bevy` warns on `cargo` not `go` | §5.3, §7, §18.2 |
+| 5. `game-bevy` skill has `name`/`description` and the five §19.4 headings | §18.3 |
+| 6. `rust-verify` commands unchanged; pointers in `rust-verify` / `rust-systems` / `review`; profile skill list | §18.1, §18.3, §14.3 |
+
+No item in requirements §20 lacks a mechanism above.

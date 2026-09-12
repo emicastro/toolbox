@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1.2)
+# Toolbox — Requirements (v1.3)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12  
 Date: 2026-09-12  
 Command: `tb`  
-Source of truth for this product: this file. v1 and v1.1 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections at the end (ADR 0007). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1, v1.1, and v1.2 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections at the end (ADR 0008). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -355,3 +355,66 @@ On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
 6. `go-verify` command block is unchanged from §15.4; its description names both Go profiles. `infra-go` and `review` skill bodies mention `back-go`. `profiles/back-go.toml` lists `review` after `handoff` and domain skills `go-verify`, `back-go`, `aws-guard`.
 
 M1 is a follow-up, not a v1.2 gate.
+
+## 19. Delta from v1.2 (v1.3)
+
+Additive. Does not rewrite §3, §15, or §17. Versioning and the fourth profile: ADR 0008. Remaining v1 non-goals stay non-goals.
+
+### 19.1 Fourth profile
+
+§6.1 / §17.1 are amended: four profiles.
+
+| Profile | Use |
+|---|---|
+| `rust-systems` | Systems / low-level Rust, including greenfield and legacy crates — not Bevy games |
+| `infra-go` | Go CLIs, scripts, AWS/infra glue, one-shot jobs — not long-running HTTP backends |
+| `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs |
+| `game-bevy` | Bevy games in Rust, greenfield and legacy — not systems crates or non-Bevy engines |
+
+`rust-systems` does not absorb Bevy gameplay.
+
+### 19.2 Domain skills (`game-bevy`)
+
+Process skills are unchanged from §15.2 (six, including `review` after `handoff`).
+
+`game-bevy` also includes:
+
+- `rust-verify` — the same recipe as §15.4 (`cargo fmt --check`; `cargo test`; `cargo clippy --all-targets -- -D warnings`; Miri when a **changed crate** contains any `unsafe` in its own `.rs` sources). One recipe, two Rust profiles. No second verify skill.
+- `game-bevy` — ECS is the architecture; panic on broken world invariants, `Result` for I/O; the schedule is the concurrency model; handles and components are values; do not block the frame. Does not name a Bevy version, physics crate, net crate, or UI crate (product ADR).
+
+No `aws-guard`. No `rust-systems` on this profile's skill list.
+
+Mutual skip: `rust-systems` skips Bevy `App` / gameplay (use `game-bevy`); `game-bevy` skips systems/low-level crates, libraries, and non-Bevy engines (use `rust-systems`).
+
+### 19.3 `tb init` profile names
+
+§8.2 / §17.3 are amended: require a profile name `rust-systems`, `infra-go`, `back-go`, or `game-bevy`. Discovery of profile files on disk is not in this increment.
+
+### 19.4 House style (`game-bevy`)
+
+Five rules, same bar as `rust-systems` / `infra-go` / `back-go`. Changing any at repo scope is an ADR.
+
+1. ECS is the architecture — Components are data, systems are behavior, plugins own a domain. `main` composes plugins. Do not model entities as objects with methods that reach into other entities. Automated tests do not take a window or a GPU: add the plugin under test to a headless `App`.
+2. Panic on broken world invariants; `Result` for I/O — Missing required component, unique entity that is not unique, schedule that should have made a state impossible: panic with a message (`expect("…")`). File, asset, parse, and network failures return `Result` and are not `unwrap`'d. Do not thread `Result` through every system to avoid a panic that means the world is corrupt.
+3. The schedule is the concurrency model — Systems run in parallel unless ordered. Do not share game state with `Arc<Mutex<_>>` or OS threads. Use `Commands`, events, and `Resources`. If two systems conflict, fix the schedule (`before` / `after` / `SystemSet`), do not add a lock. Exclusive `&mut World` is the rare case that needs the whole world.
+4. Handles and components are values — Cloning `Handle<T>`, copying `Entity`, and owning components is normal. Borrow-across-systems is the smell, not clone. Do not clone a `Resource`'s inner collection to dodge the borrow checker — split the resource or the system.
+5. Do not block the frame — No blocking I/O, asset decode, or network in `Update` / `FixedUpdate`. Load through Bevy assets (`Handle` + load/asset events). Motion uses `Time` deltas, not an assumed frame rate. Work that must block goes on Bevy's task pools and comes back as an event.
+
+Bevy version, physics/net/UI crates, wasm, screenshot tests, `cargo run` as verify, and `[profile.dev]` opt-level are not house style. Product ADRs or product convention if needed.
+
+### 19.5 Version stamp
+
+`tb init` / `tb init --force` writes `toolbox_version = "1.3.0"`. This repo's `schema_version` stays `"1"`.
+
+## 20. Acceptance (v1.3 done when)
+
+On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
+
+1. `tb init -p game-bevy` in a fresh cargo crate writes `toolbox.toml` with `profile = "game-bevy"` and `toolbox_version = "1.3.0"`; `AGENTS.md` has `Profile: game-bevy`, `review` and `game-bevy` on `Skills:`, no `rust-systems` on `Skills:`, and `Verify:` matching the `rust-verify` recipe.
+2. `tb init --force` in an existing rust-systems fixture, an infra-go fixture, and a back-go fixture writes `toolbox_version = "1.3.0"`; prose outside the managed-region markers is unchanged; the profile line does not change unless `-p` names a different profile.
+3. `tb install` links `game-bevy` into `~/.claude/skills` and `~/.grok/skills`.
+4. `tb doctor` is still clean aside from a genuinely missing agent (exit 0 with both present); with cwd profile `game-bevy` it warns on missing `cargo`, not on missing `go`.
+5. `skills/game-bevy/SKILL.md` exists with `name`/`description` frontmatter and exactly the five house-style headings in §19.4.
+6. `rust-verify` command block is unchanged from §15.4; its description names both Rust profiles. `rust-systems` and `review` skill bodies mention `game-bevy`. `profiles/game-bevy.toml` lists `review` after `handoff` and domain skills `rust-verify`, `game-bevy`.
+
+M1 is a follow-up, not a v1.3 gate.

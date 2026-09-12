@@ -1,6 +1,6 @@
-# Toolbox — Tasks (v1.2)
+# Toolbox — Tasks (v1.3)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 proposed 2026-09-12
 Date: 2026-09-12
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -286,3 +286,80 @@ no per-repo skill add/rm CLI, no persona switch CLI, no other agents, no
 `staticcheck` / `govulncheck` as required tools, no lock of router/ORM/
 migrator in the `back-go` skill, no fourth profile. Do not add tasks for
 any of these without a new ADR.
+
+## Group 17 — Spec (v1.3)
+
+- [x] **17.1** ADR `docs/adr/0008-game-bevy-profile-is-v1.3.md` as
+      `proposed` (patch rust-systems vs generic `game-rust` v1.3 vs
+      `game-bevy` v1.3 vs `game-bevy` v2).
+      Check: file exists, four MADR sections, four named options,
+      Decision is v1.3 + `game-bevy`.
+- [x] **17.2** `docs/requirements.md` header v1.3; v1, v1.1, and v1.2
+      body unchanged; §19 delta + §20 acceptance. Check: every §20 item
+      is a line you can fail; `rg 'game-bevy' docs/requirements.md`
+      shows the new profile.
+- [x] **17.3** `docs/design.md` §18–§19 cite 0008 and map §20 →
+      mechanism. Check: traceability table has one row per §20 item.
+- [x] **17.4** User marks 0008 `accepted` (and this file's v1.3 groups
+      accepted). Check: ADR header says `Status: accepted`. Do not start
+      Group 18 until this box is ticked.
+
+## Group 18 — Content (v1.3)
+
+- [ ] **18.1** `profiles/game-bevy.toml` per design §18.1. Check:
+      `rg 'rust-verify", "game-bevy' profiles/game-bevy.toml`;
+      `rg 'handoff", "review' profiles/game-bevy.toml`;
+      `rg 'aws-guard|rust-systems' profiles/game-bevy.toml` does not
+      match the `skills` array.
+- [ ] **18.2** `skills/game-bevy/SKILL.md` per design §18.3. Check:
+      frontmatter `name: game-bevy`; `rg '^## ' skills/game-bevy/SKILL.md`
+      prints exactly the five headings in requirements §19.4.
+- [ ] **18.3** Pointers in `rust-verify`, `rust-systems`, `review` per
+      design §18.3. Check: `rg 'game-bevy' skills/rust-verify/SKILL.md
+      skills/rust-systems/SKILL.md skills/review/SKILL.md` matches all
+      three; `rust-verify` command block still matches requirements
+      §15.4.
+
+## Group 19 — Binary stamp (v1.3)
+
+- [ ] **19.1** `const tbVersion = "1.3.0"` in
+      `cmd/tb/internal/cli/init.go`; init usage lists `game-bevy`; doctor
+      treats `game-bevy` like `rust-systems` for `cargo` on PATH; tests
+      per design §18.4. Check: `rg 'tbVersion' cmd/tb` shows `1.3.0`;
+      `cd cmd/tb && go test ./internal/config/ ./internal/cli/` covers
+      `TestRealProfilesParse` and init `-p game-bevy`.
+- [ ] **19.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+      `go test ./...`; `go test -race ./...`. Check: all four pass.
+
+## Group 20 — README
+
+- [ ] **20.1** `README.md` lists four profiles, `tb init -p game-bevy`,
+      version 1.3.0. Check: the profiles table has exactly four rows;
+      `game-bevy` verify block matches `rust-systems`.
+
+## Group 21 — Acceptance (requirements §20, run manually on Arch)
+
+- [ ] **21.1** `tb init -p game-bevy` in a fresh cargo crate: pointer
+      `profile = "game-bevy"` and `toolbox_version = "1.3.0"`; `AGENTS.md`
+      has `Profile: game-bevy`, `review` and `game-bevy` on `Skills:`,
+      no `rust-systems` on `Skills:`, `Verify:` matching `rust-verify`.
+      Check: file contents.
+- [ ] **21.2** `tb init --force` in a rust-systems fixture, an infra-go
+      fixture, and a back-go fixture: version stamp 1.3.0; prose outside
+      markers unchanged; profile unchanged unless `-p`. Check:
+      `git diff` / file contents.
+- [ ] **21.3** `tb install` links `game-bevy` into both agent skill dirs.
+      Check: `readlink ~/.claude/skills/game-bevy` and
+      `~/.grok/skills/game-bevy`.
+- [ ] **21.4** `tb doctor` exit 0 with both agents; cwd profile
+      `game-bevy` warns on missing `cargo`, not `go`. Check: exit code
+      and output.
+
+## Explicitly out of scope for groups 17–21
+
+Per requirements §19 and ADR 0008: no MCP server, no `tb verify` wrapper,
+no per-repo skill add/rm CLI, no persona switch CLI, no other agents, no
+fifth profile, no Bevy version pin, no physics/net/UI crate lock in the
+`game-bevy` skill, no wasm as required verify, no screenshot tests, no
+`tb` scaffolding of a Bevy template. Do not add tasks for any of these
+without a new ADR.
