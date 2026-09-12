@@ -1,11 +1,12 @@
-# Toolbox — Design (v1)
+# Toolbox — Design (v1.1)
 
-Status: accepted
-Date: 2026-09-09
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11
+Date: 2026-09-11
 Source of truth for requirements: `docs/requirements.md`. This file answers
-the "how" for every §14 open point and every command in §8. It does not
-restate rationale already recorded in `docs/adr/000{1,2,3,4}-*.md` — those are
-cited, not re-argued.
+the "how" for every §14 open point and every command in §8, plus the v1.1
+delta in requirements §15. It does not restate rationale already recorded
+in `docs/adr/000{1,2,3,4,5,6}-*.md` — those are cited, not re-argued.
+v1 sections below stay as accepted; v1.1 is §14 onward.
 
 ## 1. Path resolution
 
@@ -446,3 +447,82 @@ shells out to `cargo` or `go` (§11 non-goal).
 | 8. doctor fails closed on zero agents, warns on one | §5.3, §7 |
 
 No item in §13 lacks a mechanism above.
+
+## 14. v1.1 quality contract
+
+Requirements §15. Versioning ADR 0005; region payload ADR 0006. No new
+`tb` subcommands. `schema_version` stays `"1"`. `tbVersion` becomes
+`"1.1.0"` (the informational `toolbox_version` in product `toolbox.toml`).
+
+### 14.1 Managed region payload (ADR 0006)
+
+§4's template stays the mechanism (markers, `text/template`, merge table).
+The file `templates/AGENTS.md` grows by a **Rules** block after the
+`Language:` line, still inside the markers, no new template variables.
+Wording is locked in ADR 0006. `personas/default.md` and toolbox's own
+`AGENTS.md` carry the same five lines.
+
+`internal/render.TemplateData` is unchanged. Tests that render the real
+template must assert the rules block is present.
+
+### 14.2 Process skill `review`
+
+Both profiles' `skills` arrays become:
+
+```
+spec, adr, onboard, scout, handoff, review,
+<domain skills unchanged>
+```
+
+`review` sits after `handoff`. `tb install` already links every
+`skills/*/SKILL.md`; the array is what the region's `Skills:` line shows.
+
+Skill contract (body in `skills/review/SKILL.md`): last gate after verify,
+before ticking a task. Skip only when the session produced no diff. Pass:
+scope, ADRs, profile house style (load `rust-systems` / `infra-go` /
+`aws-guard`, do not restate them), verify actually run, `Check:` can fail.
+Output: findings with `file:line`, or `no findings` naming files read.
+No refactor during review.
+
+Persona Implement names this skill; it does not duplicate house style.
+
+### 14.3 Verify recipes (requirements §15.4)
+
+`profiles/rust-systems.toml` `[verify].summary`:
+
+```
+cargo fmt --check; cargo test; cargo clippy --all-targets -- -D warnings; miri when the changed crate has unsafe
+```
+
+`profiles/infra-go.toml` `[verify].summary`:
+
+```
+gofmt -l .; go vet ./...; go test ./...; go test -race ./...
+```
+
+Skill bodies list the same commands. Miri: run `cargo miri test` when a
+changed crate contains any `unsafe` token in `.rs` sources, even if this
+diff is only safe code. Skip Miri only when the changed package(s) have
+no `unsafe`. Missing Miri while required fails the recipe.
+
+§10's example body still says recipes live in the `*-verify` skills; the
+v1 phrase "when the diff touches `unsafe`" is superseded by the crate-level
+trigger above for v1.1.
+
+### 14.4 Skill skip and house-style deltas
+
+Documented in the skill files (group 8), matching requirements §15.3 and
+§15.5. `onboard` in particular: `AGENTS.md` existing is not a map.
+
+## 15. Traceability: v1.1 acceptance → design mechanism
+
+| Requirements §16 item | Mechanism |
+|---|---|
+| 1. `--force` refreshes rules + `review` on Skills; version 1.1.0; outside markers intact | §14.1, §14.2, `tbVersion`, ADR 0002 merge |
+| 2. `tb install` links `review` | §5.1, `skills/review/` |
+| 3. `tb doctor` still exit 0 with both agents | §5.3, §7 unchanged |
+| 4. onboard does not skip on mere `AGENTS.md` | `skills/onboard/SKILL.md` |
+| 5. verify command blocks match §15.4 | §14.3, `*-verify` skills, profile summaries |
+| 6. `review` skill + both profiles list it after `handoff` | §14.2 |
+
+No item in requirements §16 lacks a mechanism above.

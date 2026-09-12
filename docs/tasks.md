@@ -1,7 +1,7 @@
-# Toolbox — Tasks (v1)
+# Toolbox — Tasks (v1.1)
 
-Status: accepted
-Date: 2026-09-09
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 group 7 accepted 2026-09-11; groups 8–11 pending
+Date: 2026-09-11
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
 or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
@@ -148,9 +148,71 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
       dirs are temporarily renamed away, and warns (exit 0) with one
       renamed back.
 
+## Group 7 — Spec (v1.1)
+
+- [x] **7.1** ADR `docs/adr/0005-increment-is-v1.1.md` as `proposed` (v1.1
+      vs v2 vs silent patch). Check: file exists, four MADR sections, two
+      or more named options.
+- [x] **7.2** ADR `docs/adr/0006-binding-rules-in-managed-region.md` as
+      `proposed` (titles-only vs short rules block vs full persona).
+      Check: wording of the five rules is in Decision mechanics.
+- [x] **7.3** `docs/requirements.md` header v1.1; v1 body unchanged; §15
+      delta + §16 acceptance. Check: every §16 item is a line you can fail.
+- [x] **7.4** `docs/design.md` §14–§15 cite 0005/0006 and map §16 →
+      mechanism. Check: traceability table has one row per §16 item.
+- [x] **7.5** User marks 0005 and 0006 `accepted` (and this file's v1.1
+      groups accepted). Check: both ADR headers say `Status: accepted`.
+      Do not start Group 8 until this box is ticked.
+
+## Group 8 — Content (v1.1)
+
+- [ ] **8.1** `templates/AGENTS.md` rules block per ADR 0006. Check: all
+      five rules present between the markers; no new `{{.Field}}`.
+- [ ] **8.2** `personas/default.md`: same five rules; Implement names
+      `review` as the last gate. Check: both `##` headings still parse as
+      Plan / Implement titles.
+- [ ] **8.3** `skills/review/SKILL.md` per design §14.2. Check: frontmatter
+      `name: review`; skip only when this session produced no diff.
+- [ ] **8.4** Both `profiles/*.toml`: `review` after `handoff`; `[verify].summary`
+      matches design §14.3. Check: `rg 'handoff", "review' profiles/`.
+- [ ] **8.5** Process + verify + house-style + `aws-guard` skill bodies
+      per requirements §15.3–§15.5. Check: `rg 'or \`AGENTS.md\`' skills/`
+      prints nothing; `go-verify` lists `go vet ./...` and `go test -race ./...`;
+      `rust-verify` lists `cargo fmt --check`, `clippy --all-targets`, and
+      crate-level Miri.
+
+## Group 9 — Binary stamp
+
+- [ ] **9.1** `const tbVersion = "1.1.0"` in `cmd/tb/internal/cli/init.go`.
+      Check: `rg 'tbVersion' cmd/tb` shows `1.1.0`.
+- [ ] **9.2** `TestRenderAgainstRealTemplate` asserts the rules block is
+      in the rendered region. Check: `cd cmd/tb && go test ./internal/render/`
+      fails if the five rules are removed from the template.
+- [ ] **9.3** `gofmt -l .` silent; `go vet ./...`; `go test ./...` from
+      `cmd/tb`. Check: all three pass.
+
+## Group 10 — Toolbox-own + README
+
+- [ ] **10.1** This repo's `AGENTS.md` carries the five binding rules
+      (no managed region here). Check: all five lines present.
+- [ ] **10.2** `README.md` verify commands, `review` skill, version 1.1.0.
+      Check: README command lists match the `*-verify` skills.
+
+## Group 11 — Acceptance (requirements §16, run manually on Arch)
+
+- [ ] **11.1** `tb init --force` in a rust-systems fixture and an infra-go
+      fixture: `AGENTS.md` contains the five rules and `review` on
+      `Skills:`; prose outside markers unchanged; `toolbox.toml` has
+      `toolbox_version = "1.1.0"`. Check: `git diff` / file contents.
+- [ ] **11.2** `tb install` links `review` into both agent skill dirs.
+      Check: `readlink ~/.claude/skills/review` and `~/.grok/skills/review`.
+- [ ] **11.3** `tb doctor` exit 0 with both agents present. Check: exit
+      code and skill lines include `review` as `ok`.
+
 ## Explicitly out of scope for these tasks
 
-Per requirements §3 and §14: no MCP server, no `tb verify` wrapper, no
+Per requirements §3 and §15: no MCP server, no `tb verify` wrapper, no
 third profile (`back-go`), no per-repo skill add/rm CLI, no persona switch
-CLI, no other agents beyond Claude Code and Grok Build. Do not add tasks
-for any of these without a new ADR recording why the non-goal changed.
+CLI, no other agents beyond Claude Code and Grok Build, no `staticcheck` /
+`cargo deny` / `govulncheck` as required tools. Do not add tasks for any
+of these without a new ADR recording why the non-goal changed.

@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1)
+# Toolbox — Requirements (v1.1)
 
-Status: accepted  
-Date: 2026-09-09  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11  
+Date: 2026-09-11  
 Command: `tb`  
-Source of truth for this product: this file. Design and tasks are produced later in Plan Mode, in the `toolbox` repo.
+Source of truth for this product: this file. v1 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections at the end (ADR 0005). Design and tasks for the delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -236,3 +236,61 @@ On both Arch and M1, after clone to `TOOLBOX_HOME` (or default `~/toolbox`) + bu
 - CI for `tb` itself (`go test`).
 
 Plan Mode may refine skill *bodies* and add a few domain skills. It must not add MCP, extra profiles, or per-repo skill overrides.
+
+## 15. Delta from v1 (v1.1)
+
+Additive. Does not reopen §3 non-goals. Versioning: ADR 0005. Managed-region payload: ADR 0006.
+
+### 15.1 Binding rules in the product repo
+
+After `tb init`, the managed region of `AGENTS.md` must state five binding rules in English (wording locked in ADR 0006), not only profile, persona titles, skill list, verify summary, and language. The same five lines appear in `personas/default.md` and in toolbox's own `AGENTS.md`.
+
+### 15.2 Process skills
+
+§6.2's list of five is amended: both profiles also include `review`, after `handoff`. `review` is the last gate before ticking a task or claiming done. It is not a `tb` subcommand and not a domain skill.
+
+### 15.3 Skill skip clauses
+
+- `onboard` must not skip merely because `AGENTS.md` exists. Skip only when `docs/session.md` already contains an onboard map for this repo and the area of work has not drifted.
+- `adr` options must be viable, not strawmen. Classifying a fork as "implementation detail" to avoid an ADR is itself a fork.
+- `spec`: a task `Check:` must be a command whose non-zero exit fails the task, or a byte-level before/after assertion. "File exists" is valid only when the whole task is creating that file.
+- `*-verify`: touching CI, scripts, IaC, or SQL is not a skip.
+- `handoff`: `Verify status: Not run` is not allowed if the session edited code.
+- `review`: skip only when this session produced no diff.
+
+### 15.4 Verify recipes
+
+Documented only in `rust-verify` / `go-verify` (still no `tb verify`).
+
+Go: `gofmt -l .` (must print nothing); `go vet ./...`; `go test ./...`; `go test -race ./...` always. Run from the module root.
+
+Rust: `cargo fmt --check`; `cargo test`; `cargo clippy --all-targets -- -D warnings`. Run `cargo miri test` when a **changed crate contains any `unsafe`**, even if this diff only edits safe code in that crate. Skip Miri only when the changed package(s) have no `unsafe` in `.rs` sources. If Miri is required and not installed, the recipe fails.
+
+`#[allow(...)]` requires the lint name and a reason that is not "to make clippy pass".
+
+Profile `[verify].summary` must match these recipes so the managed region's `Verify:` line is accurate.
+
+### 15.5 House style
+
+`rust-systems`: library code does not `todo!`, `unimplemented!`, or `panic!` on caller input (same bucket as `unwrap`).
+
+`infra-go`: do not ignore `error`; wrap with `%w` when adding context.
+
+`aws-guard`: the "no secrets in the repo" rule triggers on `.env`, keys, tokens, or connection strings even when the diff does not mention AWS.
+
+### 15.6 Version stamp
+
+`tb init` / `tb init --force` writes `toolbox_version = "1.1.0"`. This repo's `schema_version` stays `"1"`.
+
+## 16. Acceptance (v1.1 done when)
+
+On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
+
+1. `tb init --force` in a rust-systems fixture and an infra-go fixture refreshes `AGENTS.md` with the five binding rules and `review` on the `Skills:` line; prose outside the markers is unchanged; `toolbox.toml` has `toolbox_version = "1.1.0"`.
+2. `tb install` links `review` into `~/.claude/skills` and `~/.grok/skills`.
+3. `tb doctor` is still clean aside from a genuinely missing agent (exit 0 with both present).
+4. `skills/onboard/SKILL.md` does not treat a mere `AGENTS.md` as a map.
+5. `go-verify` and `rust-verify` command blocks match §15.4, including the crate-level Miri trigger.
+6. `skills/review/SKILL.md` exists with `name`/`description` frontmatter; both profiles list `review` after `handoff`.
+
+M1 is a follow-up, not a v1.1 gate (v1 already proved both machines).
