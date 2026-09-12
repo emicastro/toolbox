@@ -150,7 +150,7 @@ func reportCwdProfile(toolboxHome string) string {
 // reportToolchain implements docs/design.md §5.3 step 6.
 func reportToolchain(profileName string) {
 	switch profileName {
-	case "rust-systems":
+	case "rust-systems", "game-bevy":
 		if _, err := exec.LookPath("cargo"); err != nil {
 			fmt.Println("warn: cargo not found on PATH")
 		}

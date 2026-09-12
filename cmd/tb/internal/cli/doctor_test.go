@@ -91,6 +91,28 @@ func TestDoctor_BackGoWarnsOnMissingGoNotCargo(t *testing.T) {
 	}
 }
 
+func TestDoctor_GameBevyWarnsOnMissingCargoNotGo(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	t.Setenv("HOME", t.TempDir())
+	// PATH has agents but neither go nor cargo, so the toolchain warning
+	// is deterministic regardless of the host's real PATH.
+	withFakeAgentsOnPath(t, "claude", "grok")
+	t.Chdir(t.TempDir())
+
+	stdout, _, code := captureOutput(t, func() int {
+		return Doctor(toolboxHome, nil, []string{"-p", "game-bevy"})
+	})
+	if code != 0 {
+		t.Errorf("Doctor() code = %d, want 0", code)
+	}
+	if !strings.Contains(stdout, "warn: cargo not found on PATH") {
+		t.Errorf("stdout = %q, want a missing-cargo warning for game-bevy", stdout)
+	}
+	if strings.Contains(stdout, "warn: go not found on PATH") {
+		t.Errorf("stdout = %q, want no go warning for game-bevy", stdout)
+	}
+}
+
 func TestDoctor_SkipsCwdProfileStepsWithoutToolboxTOML(t *testing.T) {
 	toolboxHome := newFixtureToolboxHome(t)
 	t.Setenv("HOME", t.TempDir())

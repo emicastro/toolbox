@@ -322,13 +322,13 @@ any of these without a new ADR.
 
 ## Group 19 — Binary stamp (v1.3)
 
-- [ ] **19.1** `const tbVersion = "1.3.0"` in
+- [x] **19.1** `const tbVersion = "1.3.0"` in
       `cmd/tb/internal/cli/init.go`; init usage lists `game-bevy`; doctor
       treats `game-bevy` like `rust-systems` for `cargo` on PATH; tests
       per design §18.4. Check: `rg 'tbVersion' cmd/tb` shows `1.3.0`;
       `cd cmd/tb && go test ./internal/config/ ./internal/cli/` covers
       `TestRealProfilesParse` and init `-p game-bevy`.
-- [ ] **19.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+- [x] **19.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
       `go test ./...`; `go test -race ./...`. Check: all four pass.
 
 ## Group 20 — README
