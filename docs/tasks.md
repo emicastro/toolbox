@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.1)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–10 accepted 2026-09-11; group 11 pending
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11
 Date: 2026-09-11
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -200,13 +200,13 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 11 — Acceptance (requirements §16, run manually on Arch)
 
-- [ ] **11.1** `tb init --force` in a rust-systems fixture and an infra-go
+- [x] **11.1** `tb init --force` in a rust-systems fixture and an infra-go
       fixture: `AGENTS.md` contains the five rules and `review` on
       `Skills:`; prose outside markers unchanged; `toolbox.toml` has
       `toolbox_version = "1.1.0"`. Check: `git diff` / file contents.
-- [ ] **11.2** `tb install` links `review` into both agent skill dirs.
+- [x] **11.2** `tb install` links `review` into both agent skill dirs.
       Check: `readlink ~/.claude/skills/review` and `~/.grok/skills/review`.
-- [ ] **11.3** `tb doctor` exit 0 with both agents present. Check: exit
+- [x] **11.3** `tb doctor` exit 0 with both agents present. Check: exit
       code and skill lines include `review` as `ok`.
 
 ## Explicitly out of scope for these tasks
