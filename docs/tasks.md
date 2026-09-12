@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.3)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 proposed 2026-09-12
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12
 Date: 2026-09-12
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -339,19 +339,19 @@ any of these without a new ADR.
 
 ## Group 21 — Acceptance (requirements §20, run manually on Arch)
 
-- [ ] **21.1** `tb init -p game-bevy` in a fresh cargo crate: pointer
+- [x] **21.1** `tb init -p game-bevy` in a fresh cargo crate: pointer
       `profile = "game-bevy"` and `toolbox_version = "1.3.0"`; `AGENTS.md`
       has `Profile: game-bevy`, `review` and `game-bevy` on `Skills:`,
       no `rust-systems` on `Skills:`, `Verify:` matching `rust-verify`.
       Check: file contents.
-- [ ] **21.2** `tb init --force` in a rust-systems fixture, an infra-go
+- [x] **21.2** `tb init --force` in a rust-systems fixture, an infra-go
       fixture, and a back-go fixture: version stamp 1.3.0; prose outside
       markers unchanged; profile unchanged unless `-p`. Check:
       `git diff` / file contents.
-- [ ] **21.3** `tb install` links `game-bevy` into both agent skill dirs.
+- [x] **21.3** `tb install` links `game-bevy` into both agent skill dirs.
       Check: `readlink ~/.claude/skills/game-bevy` and
       `~/.grok/skills/game-bevy`.
-- [ ] **21.4** `tb doctor` exit 0 with both agents; cwd profile
+- [x] **21.4** `tb doctor` exit 0 with both agents; cwd profile
       `game-bevy` warns on missing `cargo`, not `go`. Check: exit code
       and output.
 
