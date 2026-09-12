@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.1)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–9 accepted 2026-09-11; groups 10–11 pending
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–10 accepted 2026-09-11; group 11 pending
 Date: 2026-09-11
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -193,9 +193,9 @@ or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
 
 ## Group 10 — Toolbox-own + README
 
-- [ ] **10.1** This repo's `AGENTS.md` carries the five binding rules
+- [x] **10.1** This repo's `AGENTS.md` carries the five binding rules
       (no managed region here). Check: all five lines present.
-- [ ] **10.2** `README.md` verify commands, `review` skill, version 1.1.0.
+- [x] **10.2** `README.md` verify commands, `review` skill, version 1.1.0.
       Check: README command lists match the `*-verify` skills.
 
 ## Group 11 — Acceptance (requirements §16, run manually on Arch)

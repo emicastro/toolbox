@@ -8,9 +8,9 @@ own `docs/` (including ADRs).
 Toolbox is not an MCP server, not a daemon, not a marketplace, and not part
 of any product crate.
 
-Source of truth for v1: [`docs/requirements.md`](docs/requirements.md). How
-it is built: [`docs/design.md`](docs/design.md). Recorded forks:
-[`docs/adr/`](docs/adr/).
+Source of truth for v1.1: [`docs/requirements.md`](docs/requirements.md).
+How it is built: [`docs/design.md`](docs/design.md). Recorded forks:
+[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.1.0"`.
 
 ## What it does
 
@@ -85,7 +85,9 @@ Re-running `tb init` on a repo that already has `AGENTS.md` /
 | Bytes already match | no prompt; prints `unchanged:` | same | same |
 
 `--force` never rewrites ADR bodies or other `docs/` files that already
-exist.
+exist. It does refresh the managed region, including the v1.1 binding
+rules and the `Skills:` line (`review` is a process skill in both
+profiles).
 
 ## Commands
 
@@ -103,7 +105,7 @@ failure, `2` usage error.
 `tb doctor` only hard-fails when **zero** agents are detected. Missing skill
 links and a missing `cargo`/`go` are warnings.
 
-## Profiles (v1)
+## Profiles (v1.1)
 
 | Profile | Use | Extra skills |
 |---|---|---|
@@ -111,10 +113,29 @@ links and a missing `cargo`/`go` are warnings.
 | `infra-go` | Go CLIs, scripts, AWS/infra glue — not long-running HTTP backends | `go-verify`, `infra-go`, `aws-guard` |
 
 Both profiles include the process skills `spec`, `adr`, `onboard`, `scout`,
-`handoff`. There is no `back-go` profile in v1.
+`handoff`, `review`. `review` is the last gate after verify, before ticking
+a task. There is no `back-go` profile.
 
 Verify recipes live in `rust-verify` / `go-verify`. The agent runs those
 commands in its own shell. There is no `tb verify`.
+
+`rust-systems`:
+
+```sh
+cargo fmt --check
+cargo test
+cargo clippy --all-targets -- -D warnings
+# cargo miri test  — when the changed crate contains any unsafe
+```
+
+`infra-go`:
+
+```sh
+gofmt -l .          # must print nothing
+go vet ./...
+go test ./...
+go test -race ./...
+```
 
 ## Layout
 
@@ -159,14 +180,14 @@ From this repo:
 
 ```sh
 make all                          # linux/amd64 and darwin/arm64 into dist/
-cd cmd/tb && go test ./... && go vet ./...
+cd cmd/tb && gofmt -l . && go vet ./... && go test ./... && go test -race ./...
 ```
 
 CI on `cmd/tb/**` runs `gofmt -l`, `go vet ./...`, and `go test ./...`. The
 module is under `cmd/tb/` so those tools never walk `skills/` or
 `profiles/`. `tb` has no third-party Go dependencies (ADR 0001).
 
-## Not in v1
+## Not in v1.1
 
 MCP, a local daemon, automatic agent memory, extra agents (Cursor, Codex,
 …), a persona-switch CLI, per-repo skill enable/disable, wrapping verify as
