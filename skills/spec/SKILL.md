@@ -15,7 +15,8 @@ the spec, do not implement past the list you are producing.
    Problem, goals, explicit non-goals, users/machines, acceptance criteria
    the work is done against. No implementation choices. Push back on vague
    goals here; a requirement you cannot write an acceptance line for is not
-   a requirement yet.
+   a requirement yet. If the ask is still a tree of unsettled decisions,
+   switch to the `grill-me` skill, then resume this sequence from step 1.
 2. **`docs/design.md`** — answers *how* for every open point requirements
    left, section by section. It cites decisions, it does not re-argue them:
    any fork with two live options goes to an ADR first (see the `adr`
