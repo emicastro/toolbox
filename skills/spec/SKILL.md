@@ -38,6 +38,9 @@ the spec, do not implement past the list you are producing.
   as needing a new ADR, not a quiet edit.
 - End the session by getting the three files accepted (Status/Date header),
   then hand off with the `handoff` skill.
+- When a business domain is recognizable, or a concept had to be explained
+  to write a requirement, use the `glossary` skill (domain terms, not
+  general programming vocabulary).
 
 This repo's own `docs/requirements.md`, `docs/design.md`, `docs/tasks.md`
 and `docs/adr/000{1,2,3}-*.md` are a worked example of the output shape.

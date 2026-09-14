@@ -5,10 +5,10 @@ description: Use on the first session in a brownfield repo the user has not work
 
 # onboard
 
-Map the repo before changing it. Read-only pass, cheap tools first (use the
-`scout` skill for the searching itself), ending in a written map — not in a
-diff. `AGENTS.md` existing is not a map; after `tb init` that file is only
-the managed region.
+Map the repo before changing it. Cheap tools first (use the `scout` skill
+for the searching itself). No code edits. Allowed writes: `docs/session.md`
+and `docs/GLOSSARY.md` (see the `glossary` skill). `AGENTS.md` existing is
+not a map; after `tb init` that file is only the managed region.
 
 ## Pass
 
@@ -27,12 +27,15 @@ the managed region.
    proposing anything they already settled.
 6. **Landmines** — dead code, TODOs near the area of work, tests that are
    skipped or ignored.
+7. **Domain language** — if a business domain is recognizable, use the
+   `glossary` skill (business terms first: TTFT / NDVI, not "function").
 
 ## Output
 
 Write the map into `docs/session.md` (the `handoff` skill's file) or, if
 the work continues immediately, state it in one message before the first
 edit. Name unknowns explicitly rather than guessing; an open question is a
-better handoff than a confident wrong claim.
+better handoff than a confident wrong claim. Seeding or updating
+`docs/GLOSSARY.md` is the other allowed write.
 
 Do not refactor, reformat, or "fix" anything during an onboard pass.

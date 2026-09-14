@@ -7,7 +7,9 @@ description: Use when a plan, decision, or idea is still too vague to write requ
 
 Interview the user until you reach a shared understanding. Do not write
 `docs/requirements.md`, `docs/design.md`, or ADRs here — that is the
-`spec` / `adr` sequence after the frontier is empty.
+`spec` / `adr` sequence after the frontier is empty. `docs/GLOSSARY.md`
+is the exception: when a business domain or a term the user does not
+master shows up, use the `glossary` skill.
 
 Map the ask as a **design tree**: every decision branches into the
 decisions that hang off it. Work the tree in **rounds**. The **frontier**
