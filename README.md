@@ -8,9 +8,9 @@ own `docs/` (including ADRs).
 Toolbox is not an MCP server, not a daemon, not a marketplace, and not part
 of any product crate.
 
-Source of truth for v1.3: [`docs/requirements.md`](docs/requirements.md).
+Source of truth for v1.4: [`docs/requirements.md`](docs/requirements.md).
 How it is built: [`docs/design.md`](docs/design.md). Recorded forks:
-[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.3.0"`.
+[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.4.0"`.
 
 ## What it does
 
@@ -68,7 +68,7 @@ linked in the error case.
 From inside a git repository:
 
 ```sh
-tb init -p rust-systems   # or -p infra-go, or -p back-go, or -p game-bevy
+tb init -p rust-systems   # or -p infra-go, -p back-go, -p game-bevy, -p cpp-systems
 ```
 
 This writes `toolbox.toml` (the profile pointer), renders `AGENTS.md`, and
@@ -102,9 +102,9 @@ Exit codes: `0` success (including “one agent missing”), `1` operational
 failure, `2` usage error.
 
 `tb doctor` only hard-fails when **zero** agents are detected. Missing skill
-links and a missing `cargo`/`go` are warnings.
+links and a missing `cargo`/`go`/`cmake` are warnings.
 
-## Profiles (v1.3)
+## Profiles (v1.4)
 
 | Profile | Use | Extra skills |
 |---|---|---|
@@ -112,13 +112,14 @@ links and a missing `cargo`/`go` are warnings.
 | `infra-go` | Go CLIs, scripts, AWS/infra glue — not long-running HTTP backends | `go-verify`, `infra-go`, `aws-guard` |
 | `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs | `go-verify`, `back-go`, `aws-guard` |
 | `game-bevy` | Bevy games in Rust, greenfield and legacy — not systems crates or non-Bevy engines | `rust-verify`, `game-bevy` |
+| `cpp-systems` | C/C++ built with CMake — ggml-family repos (llama.cpp) and your own C++ projects | `cpp-verify`, `cpp-ggml` |
 
-All four profiles include the process skills `spec`, `adr`, `onboard`,
+All five profiles include the process skills `spec`, `adr`, `onboard`,
 `scout`, `handoff`, `review`. `review` is the last gate after verify,
 before ticking a task.
 
-Verify recipes live in `rust-verify` / `go-verify`. The agent runs those
-commands in its own shell. There is no `tb verify`.
+Verify recipes live in `rust-verify` / `go-verify` / `cpp-verify`. The
+agent runs those commands in its own shell. There is no `tb verify`.
 
 `rust-systems`:
 
@@ -156,11 +157,29 @@ cargo clippy --all-targets -- -D warnings
 # cargo miri test  — when the changed crate contains any unsafe
 ```
 
+`cpp-systems`:
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLAMA_FATAL_WARNINGS=ON
+cmake --build build -j $(nproc)
+ctest --test-dir build -L main --output-on-failure --timeout 900
+# clang-format the added lines only
+# ./build/bin/test-backend-ops  — when the diff touches ggml/
+```
+
+C++ has no universal recipe: `cpp-verify` says to confirm the flags
+against the target repo's CI workflows rather than recall them. In a repo
+you do not own (llama.cpp is the motivating case) do **not** run
+`tb init` — it would append a managed region to that project's tracked
+`AGENTS.md` and scaffold toolbox docs into its `docs/`. `tb install` has
+already linked the skills machine-wide; that is enough.
+
 ## Layout
 
 ```
 $TOOLBOX_HOME/          # this repo (default ~/toolbox)
-  profiles/             # rust-systems.toml, infra-go.toml, back-go.toml, game-bevy.toml
+  profiles/             # rust-systems.toml, infra-go.toml, back-go.toml,
+                        # game-bevy.toml, cpp-systems.toml
   personas/default.md
   skills/<name>/SKILL.md
   templates/            # files tb init copies if missing
@@ -206,9 +225,10 @@ CI on `cmd/tb/**` runs `gofmt -l`, `go vet ./...`, and `go test ./...`. The
 module is under `cmd/tb/` so those tools never walk `skills/` or
 `profiles/`. `tb` has no third-party Go dependencies (ADR 0001).
 
-## Not in v1.3
+## Not in v1.4
 
 MCP, a local daemon, automatic agent memory, extra agents (Cursor, Codex,
 …), a persona-switch CLI, per-repo skill enable/disable, wrapping verify as
-`tb verify`, installing the coding agents themselves. Sync is `git pull` in
-`$TOOLBOX_HOME` plus `tb install`.
+`tb verify`, installing the coding agents themselves, a `tb` guard against
+initialising an upstream repo. Sync is `git pull` in `$TOOLBOX_HOME` plus
+`tb install`.

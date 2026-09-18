@@ -1,7 +1,7 @@
-# Toolbox — Tasks (v1.3)
+# Toolbox — Tasks (v1.4)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12
-Date: 2026-09-12
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18
+Date: 2026-09-18
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
 or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
@@ -363,3 +363,86 @@ fifth profile, no Bevy version pin, no physics/net/UI crate lock in the
 `game-bevy` skill, no wasm as required verify, no screenshot tests, no
 `tb` scaffolding of a Bevy template. Do not add tasks for any of these
 without a new ADR.
+
+## Group 22 — Spec (v1.4)
+
+- [x] **22.1** ADR `docs/adr/0009-cpp-systems-profile-is-v1.4.md` as
+      `proposed` (no profile vs generic `cpp-systems` house style vs
+      `cpp-systems` with a ggml-locked house style vs `cpp-ggml` as the
+      profile name).
+      Check: file exists, four MADR sections, four named options,
+      Decision is v1.4 + `cpp-systems` + `cpp-ggml` house style.
+- [x] **22.2** `docs/requirements.md` header v1.4; v1 through v1.3 body
+      unchanged; §21 delta + §22 acceptance. Check: every §22 item is a
+      line you can fail; `rg 'cpp-systems' docs/requirements.md` shows
+      the new profile.
+- [x] **22.3** `docs/design.md` §20–§21 cite 0009 and map §22 →
+      mechanism. Check: traceability table has one row per §22 item.
+- [x] **22.4** User marks 0009 `accepted` (and this file's v1.4 groups
+      accepted). Check: ADR header says `Status: accepted`. Do not start
+      Group 23 until this box is ticked.
+
+## Group 23 — Content (v1.4)
+
+- [x] **23.1** `profiles/cpp-systems.toml` per design §20.1. Check:
+      `rg 'cpp-verify", "cpp-ggml' profiles/cpp-systems.toml`;
+      `rg 'handoff", "review' profiles/cpp-systems.toml`;
+      `rg 'aws-guard|rust-|-go' profiles/cpp-systems.toml` does not match
+      the `skills` array.
+- [x] **23.2** `skills/cpp-verify/SKILL.md` per design §20.3. Check:
+      frontmatter `name: cpp-verify`; the command block is the three
+      CMake/ctest lines; the body tells the agent to confirm flags
+      against the target repo's CI workflows.
+- [x] **23.3** `skills/cpp-ggml/SKILL.md` per design §20.4. Check:
+      frontmatter `name: cpp-ggml`; `rg '^## ' skills/cpp-ggml/SKILL.md`
+      prints exactly the six headings in requirements §21.6; heading 1
+      contains the `tb init` prohibition; heading 2 contains
+      `Assisted-by:` and no `Co-authored-by:` recommendation.
+- [x] **23.4** Pointer in `review` per design §20.4. Check:
+      `rg 'cpp-systems|cpp-ggml' skills/review/SKILL.md` matches;
+      `git diff --stat skills/rust-verify skills/go-verify` is empty.
+
+## Group 24 — Binary stamp (v1.4)
+
+- [x] **24.1** `const tbVersion = "1.4.0"` in
+      `cmd/tb/internal/cli/init.go`; init usage lists `cpp-systems`;
+      doctor warns on missing `cmake` for `cpp-systems`; tests per design
+      §20.6. Check: `rg 'tbVersion' cmd/tb` shows `1.4.0`;
+      `cd cmd/tb && go test ./internal/config/ ./internal/cli/` covers
+      `TestRealProfilesParse` and init `-p cpp-systems`.
+- [x] **24.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+      `go test ./...`; `go test -race ./...`. Check: all four pass.
+
+## Group 25 — README
+
+- [x] **25.1** `README.md` lists five profiles, `tb init -p cpp-systems`,
+      version 1.4.0, and the CMake verify block. Check: the profiles
+      table has exactly five rows; the layout block names
+      `cpp-systems.toml`.
+
+## Group 26 — Acceptance (requirements §22, run manually on Arch)
+
+- [x] **26.1** `tb init -p cpp-systems` in a fresh git repo: pointer
+      `profile = "cpp-systems"` and `toolbox_version = "1.4.0"`;
+      `AGENTS.md` has `Profile: cpp-systems`, `review`, `cpp-verify`, and
+      `cpp-ggml` on `Skills:`, no Rust or Go skill on `Skills:`,
+      `Verify:` matching `cpp-verify`. Check: file contents.
+- [x] **26.2** `tb init --force` in a rust-systems, infra-go, back-go,
+      and game-bevy fixture: version stamp 1.4.0; prose outside markers
+      unchanged; profile unchanged unless `-p`. Check: `git diff` / file
+      contents.
+- [x] **26.3** `tb install` links `cpp-verify` and `cpp-ggml` into both
+      agent skill dirs. Check: `readlink ~/.claude/skills/cpp-verify` and
+      `~/.grok/skills/cpp-ggml`.
+- [x] **26.4** `tb doctor` exit 0 with both agents; cwd profile
+      `cpp-systems` warns on missing `cmake`, not `cargo` or `go`.
+      Check: exit code and output.
+
+## Explicitly out of scope for groups 22–26
+
+Per requirements §21 and ADR 0009: no MCP server, no `tb verify` wrapper,
+no per-repo skill add/rm CLI, no persona switch CLI, no other agents, no
+sixth profile, no `tb` guard against initialising an upstream repo, no
+generic C/C++ house style, no CUDA/Metal/Vulkan sub-profile, no Python
+recipe for `gguf-py` / `convert_*.py`, and no wrapper around `ci/run.sh`.
+Do not add tasks for any of these without a new ADR.
