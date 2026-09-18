@@ -61,6 +61,15 @@ templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
 [verify]
 summary = "cargo test"
 `)
+	writeFile(t, filepath.Join(home, "profiles", "cpp-systems.toml"), `name = "cpp-systems"
+description = "fixture"
+persona = "default"
+skills = ["spec", "adr"]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "ctest --test-dir build"
+`)
 
 	writeFile(t, filepath.Join(home, "templates", "AGENTS.md"), ""+
 		beginMarkerForTest+"\n"+

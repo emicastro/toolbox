@@ -158,5 +158,9 @@ func reportToolchain(profileName string) {
 		if _, err := exec.LookPath("go"); err != nil {
 			fmt.Println("warn: go not found on PATH")
 		}
+	case "cpp-systems":
+		if _, err := exec.LookPath("cmake"); err != nil {
+			fmt.Println("warn: cmake not found on PATH")
+		}
 	}
 }

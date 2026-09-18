@@ -14,13 +14,13 @@ import (
 
 // tbVersion is written into a product repo's toolbox.toml
 // (toolbox_version, docs/design.md §3.2) — informational only.
-const tbVersion = "1.3.0"
+const tbVersion = "1.4.0"
 
 // Init implements `tb init` (docs/design.md §5.2).
 func Init(toolboxHome string, args []string) int {
 	profileName, force, parseErr := parseInitFlags(args)
 	if parseErr != nil || profileName == "" {
-		fmt.Fprintln(os.Stderr, "usage: tb init -p <rust-systems|infra-go|back-go|game-bevy> [--force]")
+		fmt.Fprintln(os.Stderr, "usage: tb init -p <rust-systems|infra-go|back-go|game-bevy|cpp-systems> [--force]")
 		return 2
 	}
 
