@@ -20,8 +20,10 @@ finding to a new task.
 2. **ADRs** — no fork treated as settled without an ADR (see the `adr`
    skill).
 3. **House style** — load the profile domain skill (`rust-systems`,
-   `infra-go`, `back-go`, or `game-bevy`) and `aws-guard` when the diff
-   touches AWS or secrets. Do not restate those skills here.
+   `infra-go`, `back-go`, `game-bevy`, or `cpp-ggml` for `cpp-systems`)
+   and `aws-guard` when the diff touches AWS or secrets. Do not restate
+   those skills here. In a repo the user does not own, that repo's own
+   `AGENTS.md` / `CONTRIBUTING.md` outrank the domain skill and this one.
 4. **Verify** — the recipe was actually run this session; output is in
    the conversation. `Not run` is a finding. `#[allow]`, `t.Skip`, ignored
    tests, and empty `if err != nil {}` in the diff are findings.

@@ -1,0 +1,12 @@
+name = "cpp-systems"
+description = "C/C++ with CMake — ggml-family repos (llama.cpp) and your own C++ projects"
+persona = "default"                       # personas/<persona>.md
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "cpp-verify", "cpp-ggml",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "cmake -B build; cmake --build build -j; ctest --test-dir build -L main --output-on-failure; clang-format added lines only; test-backend-ops when ggml/ changed"
