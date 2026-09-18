@@ -822,9 +822,16 @@ Requirements §21.3. `render.Merge` appends the managed region to an
 existing `AGENTS.md`, and `llama.cpp` tracks one; `.git/info/exclude` does
 not cover a tracked file. `scaffold.MaterializeTemplates` would create
 four toolbox docs inside the project's own `docs/`. So the rule is
-documentary, enforced by the skill: do not run `tb init` there, plan in a
-scratch directory outside the repo, and rely on `tb install` having
-linked the skills machine-wide.
+documentary, enforced by the skill: do not run `tb init` there, send every
+toolbox write to `~/src/notes/<repo>/` instead, and rely on `tb install`
+having linked the skills machine-wide.
+
+The redirect is named rather than left as "somewhere outside the repo"
+because `onboard`, `handoff`, and `glossary` have a default path
+(`docs/session.md`, `docs/GLOSSARY.md`) that resolves into the project's
+own `docs/`. `.git/info/exclude` is rejected as the alternative: it hides
+the file from the user's own `git status`, and `git clean -xdf` removes
+exactly the files it covers.
 
 No `tb` mechanism implements this in v1.4. A guard would need upstream
 detection (remote owner? tracked `AGENTS.md`? absence of `toolbox.toml`?),

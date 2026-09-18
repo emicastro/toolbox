@@ -23,7 +23,16 @@ skill, the persona, or the `AGENTS.md` of any other repo, **they win**.
 `docs/session.md` into the project's `docs/`. The upstream tree stays
 byte-clean apart from your actual change. This skill and `cpp-verify` are
 installed machine-wide by `tb install` and work without a pointer file.
-Plan in a scratch directory outside the repo.
+
+Every toolbox write goes outside the clone, to `~/src/notes/<repo>/` —
+`~/src/notes/llama.cpp/session.md` for `onboard` and `handoff`,
+`~/src/notes/llama.cpp/GLOSSARY.md` for `glossary`. Create the directory
+if it is missing. Those skills default to `docs/session.md` and
+`docs/GLOSSARY.md`; here that is the project's own `docs/`, so redirect
+them rather than writing there. Do not use `.git/info/exclude` to hide a
+file inside the tree instead: it hides the file from your own
+`git status` too, and `git clean -xdf` — the usual recovery from a bad
+CMake build — deletes exactly what it covers.
 
 ## Never speak for the contributor
 

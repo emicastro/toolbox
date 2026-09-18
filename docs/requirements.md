@@ -456,6 +456,8 @@ New constraint, no earlier profile needed it. `tb init` is run only in a repo th
 
 For upstream work the two domain skills carry the value on their own: `tb install` links them machine-wide and the agent loads them by description, with no pointer file and no change to the upstream tree.
 
+`tb init` is not the only writer. `onboard` and `handoff` write `docs/session.md` and `glossary` writes `docs/GLOSSARY.md`, all of which resolve into the project's own `docs/` in an upstream repo. In a `cpp-systems` upstream repo those writes are redirected to `~/src/notes/<repo>/`. `.git/info/exclude` is not the alternative: it hides the file from the user's own `git status`, and `git clean -xdf` — the usual recovery from a bad CMake build — removes exactly the files it covers.
+
 This is a rule in the `cpp-ggml` skill. `tb` gains no guard, no `--no-write` flag, and no upstream detection in this increment.
 
 ### 21.4 Target-repo rules outrank toolbox
@@ -472,7 +474,7 @@ Two consequences are load-bearing enough to name here: an agent does not write P
 
 Six rules, same bar as the other house-style skills, except that rule 1 subordinates the rest to the target repo. Changing any at repo scope is an ADR in that product.
 
-1. The repo's own rules win — read the target repo's `AGENTS.md` and `CONTRIBUTING.md` every session, not from memory; where they disagree with this skill or the persona, they win. Carries §21.3: do not run `tb init` here, plan in a scratch directory outside the repo, rely on `tb install` having linked the skills machine-wide. Check the repo's own `skills/` directory for one covering the task.
+1. The repo's own rules win — read the target repo's `AGENTS.md` and `CONTRIBUTING.md` every session, not from memory; where they disagree with this skill or the persona, they win. Carries §21.3: do not run `tb init` here, send every toolbox write to `~/src/notes/<repo>/` (which is where `onboard`, `handoff`, and `glossary` put the files they would otherwise write into the project's own `docs/`), rely on `tb install` having linked the skills machine-wide, and do not use `.git/info/exclude` to hide a file inside the tree instead. Check the repo's own `skills/` directory for one covering the task.
 2. Never speak for the contributor — no PR description, commit message, issue, review comment, or reply, not even as a draft; no `git push` / `gh pr create` / `gh pr comment` / `gh issue create`; reading commands (`gh search issues`, `gh search prs`, `grep`) are encouraged and duplicates must be searched for first; when the user explicitly asks for a commit the trailer is `Assisted-by: <assistant name>`, never `Co-authored-by:`; the AI-usage disclosure in the PR template is the user's to write.
 3. Understanding is the deliverable — a merged line is an indefinite maintenance obligation, so guide before solving, verify comprehension before writing a change, prefer the simpler change that does 90%. Features start as an issue; a bug fix needs a reproducible issue and a regression test that fails before and passes after; one PR per concern; a first PR for a new model or feature is CPU-only.
 4. Blend in — read the surrounding code and match it; stop and warn the user when the change introduces a new pattern or is large. No third-party dependencies, no new subsystem, no fancy STL or templates; `snake_case`, longest-common-prefix naming, `<class>_<method>` public API, prefixed upper-case enum values, sized integer types in the public API, lowercase-dash filenames, cross-platform always.
