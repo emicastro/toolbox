@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1.3)
+# Toolbox — Requirements (v1.4)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12  
-Date: 2026-09-12  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18  
+Date: 2026-09-18  
 Command: `tb`  
-Source of truth for this product: this file. v1, v1.1, and v1.2 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections at the end (ADR 0008). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1, v1.1, v1.2, and v1.3 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections at the end (ADR 0009). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -418,3 +418,83 @@ On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
 6. `rust-verify` command block is unchanged from §15.4; its description names both Rust profiles. `rust-systems` and `review` skill bodies mention `game-bevy`. `profiles/game-bevy.toml` lists `review` after `handoff` and domain skills `rust-verify`, `game-bevy`.
 
 M1 is a follow-up, not a v1.3 gate.
+
+## 21. Delta from v1.3 (v1.4)
+
+Additive. Does not rewrite §3, §15, §17, or §19. Versioning and the fifth profile: ADR 0009. Remaining v1 non-goals stay non-goals.
+
+### 21.1 Fifth profile
+
+§6.1 / §17.1 / §19.1 are amended: five profiles.
+
+| Profile | Use |
+|---|---|
+| `rust-systems` | Systems / low-level Rust, including greenfield and legacy crates — not Bevy games |
+| `infra-go` | Go CLIs, scripts, AWS/infra glue, one-shot jobs — not long-running HTTP backends |
+| `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs |
+| `game-bevy` | Bevy games in Rust, greenfield and legacy — not systems crates or non-Bevy engines |
+| `cpp-systems` | C/C++ built with CMake — ggml-family repos (llama.cpp) and the user's own C++ projects |
+
+The profile names the language and build surface; the house-style skill carries the family lock (ADR 0009).
+
+### 21.2 Domain skills (`cpp-systems`)
+
+Process skills are unchanged from §15.2 (six, including `review` after `handoff`).
+
+`cpp-systems` also includes:
+
+- `cpp-verify` — CMake configure with `-DLLAMA_FATAL_WARNINGS=ON`, build, `ctest -L main`, `clang-format` on added lines only, `test-backend-ops` across two backends when `ggml/` changed, a sanitizer build for memory-touching diffs, `ci/run.sh` before publishing. Unlike `cargo` and `go` there is no universal C++ recipe: the skill states that the target repo's CI workflows are the source of truth and that flags are confirmed there, not recalled.
+- `cpp-ggml` — the repo's own rules win; never speak for the contributor; understanding is the deliverable; blend in; comments last and short; ggml facts that reviews fail on.
+
+No `aws-guard`. No `rust-*` and no `*-go` skill on this profile's skill list.
+
+Mutual skip: `rust-systems` is Rust only and is unaffected; `cpp-ggml` skips non-ggml C/C++ and the target repo's Python tooling (`gguf-py`, `convert_*.py`).
+
+### 21.3 Upstream repos are not initialised
+
+New constraint, no earlier profile needed it. `tb init` is run only in a repo the user owns. In an upstream repo (`ggml-org/llama.cpp` is the motivating case) it would append a toolbox managed region to a tracked `AGENTS.md` and scaffold `docs/requirements.md`, `docs/design.md`, `docs/tasks.md`, and `docs/session.md` into the project's own `docs/`.
+
+For upstream work the two domain skills carry the value on their own: `tb install` links them machine-wide and the agent loads them by description, with no pointer file and no change to the upstream tree.
+
+This is a rule in the `cpp-ggml` skill. `tb` gains no guard, no `--no-write` flag, and no upstream detection in this increment.
+
+### 21.4 Target-repo rules outrank toolbox
+
+Where the target repo's `AGENTS.md` or `CONTRIBUTING.md` disagrees with the persona or with the `cpp-ggml` skill, the target repo wins. `cpp-ggml` says so in its first rule and points at those files rather than restating them as toolbox policy, because they change upstream.
+
+Two consequences are load-bearing enough to name here: an agent does not write PR descriptions, commit messages, issues, review comments, or replies in such a repo, and does not run `git push` / `gh pr create` / `gh pr comment`; and when the user explicitly asks for a commit there, the trailer is `Assisted-by: <assistant name>`, never `Co-authored-by:`.
+
+### 21.5 `tb init` profile names
+
+§8.2 / §17.3 / §19.3 are amended: require a profile name `rust-systems`, `infra-go`, `back-go`, `game-bevy`, or `cpp-systems`. Discovery of profile files on disk is still not in this increment.
+
+### 21.6 House style (`cpp-systems`)
+
+Six rules, same bar as the other house-style skills, except that rule 1 subordinates the rest to the target repo. Changing any at repo scope is an ADR in that product.
+
+1. The repo's own rules win — read the target repo's `AGENTS.md` and `CONTRIBUTING.md` every session, not from memory; where they disagree with this skill or the persona, they win. Carries §21.3: do not run `tb init` here, plan in a scratch directory outside the repo, rely on `tb install` having linked the skills machine-wide. Check the repo's own `skills/` directory for one covering the task.
+2. Never speak for the contributor — no PR description, commit message, issue, review comment, or reply, not even as a draft; no `git push` / `gh pr create` / `gh pr comment` / `gh issue create`; reading commands (`gh search issues`, `gh search prs`, `grep`) are encouraged and duplicates must be searched for first; when the user explicitly asks for a commit the trailer is `Assisted-by: <assistant name>`, never `Co-authored-by:`; the AI-usage disclosure in the PR template is the user's to write.
+3. Understanding is the deliverable — a merged line is an indefinite maintenance obligation, so guide before solving, verify comprehension before writing a change, prefer the simpler change that does 90%. Features start as an issue; a bug fix needs a reproducible issue and a regression test that fails before and passes after; one PR per concern; a first PR for a new model or feature is CPU-only.
+4. Blend in — read the surrounding code and match it; stop and warn the user when the change introduces a new pattern or is large. No third-party dependencies, no new subsystem, no fancy STL or templates; `snake_case`, longest-common-prefix naming, `<class>_<method>` public API, prefixed upper-case enum values, sized integer types in the public API, lowercase-dash filenames, cross-platform always.
+5. Comments last, and short — write the code, then comment only where needed; one or two lines; simple English; explain a non-obvious invariant, never what the code says; no hard-wrapping mid-sentence; no comment that addresses the current task; copied code keeps the comments it had and gains none.
+6. ggml facts that reviews fail on — row-major tensors with dimension 0 as columns; `ggml_mul_mat` is transposed; backend ops must match the CPU reference via `test-backend-ops`; a new `ggml_type` carries its own evidence bar; public headers are an ABI surface and a change there is a design fork.
+
+Backend choice (CUDA / Metal / Vulkan / SYCL), a compiler version, a C++ standard level, and the target repo's Python tooling are not house style.
+
+### 21.7 Version stamp
+
+`tb init` / `tb init --force` writes `toolbox_version = "1.4.0"`. This repo's `schema_version` stays `"1"`.
+
+## 22. Acceptance (v1.4 done when)
+
+On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
+
+1. `tb init -p cpp-systems` in a fresh git repo writes `toolbox.toml` with `profile = "cpp-systems"` and `toolbox_version = "1.4.0"`; `AGENTS.md` has `Profile: cpp-systems`, `review`, `cpp-verify`, and `cpp-ggml` on `Skills:`, no `rust-*` and no `*-go` skill on `Skills:`, and `Verify:` matching the `cpp-verify` recipe.
+2. `tb init --force` in a rust-systems fixture, an infra-go fixture, a back-go fixture, and a game-bevy fixture writes `toolbox_version = "1.4.0"`; prose outside the managed-region markers is unchanged; the profile line does not change unless `-p` names a different profile.
+3. `tb install` links `cpp-verify` and `cpp-ggml` into `~/.claude/skills` and `~/.grok/skills`.
+4. `tb doctor` is still clean aside from a genuinely missing agent (exit 0 with both present); with cwd profile `cpp-systems` it warns on missing `cmake`, not on missing `cargo` or `go`.
+5. `skills/cpp-ggml/SKILL.md` exists with `name`/`description` frontmatter and exactly the six house-style headings in §21.6; the first is the rule that the target repo wins and that `tb init` is not run there.
+6. `skills/cpp-verify/SKILL.md` names the repo's CI workflows as the source of truth for flags. `review` skill body mentions `cpp-systems`. `profiles/cpp-systems.toml` lists `review` after `handoff` and domain skills `cpp-verify`, `cpp-ggml`.
+7. `rust-verify`, `go-verify`, and the four earlier profile files are byte-unchanged by this increment.
+
+M1 is a follow-up, not a v1.4 gate.

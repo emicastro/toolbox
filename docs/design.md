@@ -1,11 +1,12 @@
-# Toolbox — Design (v1.3)
+# Toolbox — Design (v1.4)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12
-Date: 2026-09-12
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18
+Date: 2026-09-18
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
-delta in requirements §15, the v1.2 delta in requirements §17, and the
-v1.3 delta in requirements §19. It does
+delta in requirements §15, the v1.2 delta in requirements §17, the
+v1.3 delta in requirements §19, and the v1.4 delta in requirements §21.
+It does
 not restate rationale already recorded in
 `docs/adr/000{1,2,3,4,5,6,7,8}-*.md` — those are cited, not re-argued.
 v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16–§17;
@@ -715,3 +716,146 @@ No parser, render, install, or schema tests change shape.
 | 6. `rust-verify` commands unchanged; pointers in `rust-verify` / `rust-systems` / `review`; profile skill list | §18.1, §18.3, §14.3 |
 
 No item in requirements §20 lacks a mechanism above.
+
+## 20. v1.4 fifth profile `cpp-systems`
+
+Requirements §21. Versioning and the new profile: ADR 0009. No new `tb`
+subcommands. `schema_version` stays `"1"`. `tbVersion` becomes `"1.4.0"`.
+Profile files are still the §3.3 schema. Init does not discover profiles
+on disk — the usage list grows by one hardcoded name.
+
+### 20.1 Tree and profile file
+
+`$TOOLBOX_HOME/profiles/` also contains `cpp-systems.toml`.
+`$TOOLBOX_HOME/skills/` also contains `cpp-verify/SKILL.md` and
+`cpp-ggml/SKILL.md`. `tb install` already links every `skills/*/SKILL.md`;
+no install-path change.
+
+`profiles/cpp-systems.toml`:
+
+```toml
+name = "cpp-systems"
+description = "C/C++ with CMake - ggml-family repos (llama.cpp) and your own C++ projects"
+persona = "default"
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "cpp-verify", "cpp-ggml",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "cmake -B build; cmake --build build -j; ctest --test-dir build -L main --output-on-failure; clang-format added lines only; test-backend-ops when ggml/ changed"
+```
+
+`review` after `handoff`. Domain skills and verify summary match
+requirements §21.2. No `aws-guard`. No `rust-*` and no `*-go` on this
+array.
+
+The `templates` array is the same five as every other profile. It is
+unused in the motivating case because `tb init` is not run in an upstream
+repo (§20.5); it applies when the profile is wired to a C/C++ repo the
+user owns.
+
+### 20.2 Init usage and doctor toolchain
+
+§5.2 step 1 usage becomes
+`usage: tb init -p <rust-systems|infra-go|back-go|game-bevy|cpp-systems> [--force]`.
+`LoadProfileByName` is unchanged.
+
+§5.3 step 6 gains a third branch: if the profile is `cpp-systems`, warn
+when `cmake` is not on PATH. `rust-systems` / `game-bevy` stay on
+`cargo`; `infra-go` / `back-go` stay on `go`. One toolchain per profile,
+no matrix: `clang-format`, `ctest`, and a backend SDK are the verify
+skill's problem, not doctor's.
+
+### 20.3 Verify skill
+
+`skills/cpp-verify/SKILL.md` frontmatter `name` + `description`. The
+command block is the llama.cpp shape:
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLAMA_FATAL_WARNINGS=ON
+cmake --build build -j $(nproc)
+ctest --test-dir build -L main --output-on-failure --timeout 900
+```
+
+`-DLLAMA_FATAL_WARNINGS=ON` is this profile's `-D warnings`. Because C++
+has no universal recipe, the skill's first instruction is to confirm the
+flags against the target repo's `.github/workflows/build-*.yml` and
+`docs/build.md` rather than recall them. Further sections: formatting
+added lines only (`.clang-format`, `.editorconfig`, `.ecrc`, ASCII only),
+`test-backend-ops` across two backends when `ggml/` changed, sanitizer
+build (`LLAMA_SANITIZE_ADDRESS` / `LLAMA_SANITIZE_UNDEFINED`) for
+memory-touching diffs, `ci/run.sh` before publishing, and the shared
+rules (evidence over narration, pre-existing failures are findings, name
+the backend you built).
+
+### 20.4 House-style skill
+
+`skills/cpp-ggml/SKILL.md` frontmatter `name` + `description`.
+Description must trigger on ggml-family C/C++ (llama.cpp, whisper.cpp,
+ggml) including work aimed at an upstream PR, and skip non-ggml C/C++ and
+the repo's Python tooling. Body: exactly six `##` headings, wording
+matching requirements §21.6 (which folds in §21.3 and §21.4):
+
+1. The repo's own rules win
+2. Never speak for the contributor
+3. Understanding is the deliverable
+4. Blend in
+5. Comments last, and short
+6. ggml facts that reviews fail on
+
+Heading 1 carries the `tb init` prohibition (§20.5). Heading 2 carries
+the `Assisted-by:` trailer, which overrides the default attribution used
+in every other repo. The skill does not restate the target repo's policy
+text as toolbox policy; it points at `AGENTS.md` and `CONTRIBUTING.md`
+and says they win, because upstream changes them.
+
+`review`'s house-style pass loads `rust-systems` / `infra-go` /
+`back-go` / `game-bevy` / `cpp-ggml` (and `aws-guard` when the diff
+touches AWS or secrets). `rust-verify` and `go-verify` are untouched.
+
+### 20.5 Upstream repos
+
+Requirements §21.3. `render.Merge` appends the managed region to an
+existing `AGENTS.md`, and `llama.cpp` tracks one; `.git/info/exclude` does
+not cover a tracked file. `scaffold.MaterializeTemplates` would create
+four toolbox docs inside the project's own `docs/`. So the rule is
+documentary, enforced by the skill: do not run `tb init` there, plan in a
+scratch directory outside the repo, and rely on `tb install` having
+linked the skills machine-wide.
+
+No `tb` mechanism implements this in v1.4. A guard would need upstream
+detection (remote owner? tracked `AGENTS.md`? absence of `toolbox.toml`?),
+which is a fork of its own and would need an ADR.
+
+### 20.6 Tests
+
+- `TestRealProfilesParse` includes `cpp-systems` next to the four earlier
+  names.
+- CLI fixture `newFixtureToolboxHome` ships a minimal
+  `profiles/cpp-systems.toml` so `Init(..., []string{"-p", "cpp-systems"})`
+  is testable.
+- An init test: empty git repo, `-p cpp-systems`, `toolbox.toml` contains
+  `profile = "cpp-systems"` and `AGENTS.md` contains
+  `Profile: cpp-systems`.
+- Doctor's toolchain branch for `cpp-systems` is the `cmake` path, not
+  `cargo` and not `go`.
+- The init usage-string test asserts `cpp-systems` is listed.
+
+No parser, render, install, or schema tests change shape.
+
+## 21. Traceability: v1.4 acceptance → design mechanism
+
+| Requirements §22 item | Mechanism |
+|---|---|
+| 1. `tb init -p cpp-systems` writes pointer 1.4.0 + region with `cpp-verify` / `cpp-ggml` / `review` / no Rust or Go skill / CMake verify | §20.1, §20.2, `tbVersion`, §4 render |
+| 2. `--force` on the four earlier fixtures stamps 1.4.0; outside markers intact; profile unchanged unless `-p` | ADR 0002 merge, `tbVersion` |
+| 3. `tb install` links `cpp-verify` and `cpp-ggml` | §5.1, `skills/cpp-verify/`, `skills/cpp-ggml/` |
+| 4. `tb doctor` exit 0 with both agents; `cpp-systems` warns on `cmake` not `cargo` / `go` | §5.3, §7, §20.2 |
+| 5. `cpp-ggml` skill has `name`/`description` and the six §21.6 headings, first one carrying the upstream rules | §20.4, §20.5 |
+| 6. `cpp-verify` names the repo's CI as flag source of truth; `review` mentions `cpp-systems`; profile skill list | §20.1, §20.3, §20.4 |
+| 7. Earlier verify skills and profile files untouched | §20.1, §20.4 (additive only) |
+
+No item in requirements §22 lacks a mechanism above.
