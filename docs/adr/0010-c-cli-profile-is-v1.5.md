@@ -1,6 +1,6 @@
 # 0010. `c-cli` is a sixth profile; this increment is v1.5
 
-Status: proposed
+Status: accepted
 Date: 2026-09-22
 
 ## Context

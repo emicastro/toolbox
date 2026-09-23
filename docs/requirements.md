@@ -1,6 +1,6 @@
 # Toolbox — Requirements (v1.5)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta proposed 2026-09-22  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22  
 Date: 2026-09-22  
 Command: `tb`  
 Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, and v1.4 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections at the end (ADR 0010). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.

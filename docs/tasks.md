@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.5)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 proposed 2026-09-22
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22
 Date: 2026-09-22
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -460,7 +460,7 @@ Do not add tasks for any of these without a new ADR.
       profile.
 - [x] **27.3** `docs/design.md` §22–§23 cite 0010 and map §24 →
       mechanism. Check: traceability table has one row per §24 item.
-- [ ] **27.4** User marks 0010 `accepted` (and this file's v1.5 groups
+- [x] **27.4** User marks 0010 `accepted` (and this file's v1.5 groups
       accepted). Check: ADR header says `Status: accepted`. Do not start
       Group 28 until this box is ticked.
 
