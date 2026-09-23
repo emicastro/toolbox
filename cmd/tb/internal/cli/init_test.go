@@ -84,6 +84,9 @@ func TestInit_RequiresProfileFlag(t *testing.T) {
 	if !strings.Contains(stderr, "cpp-systems") {
 		t.Errorf("stderr = %q, want usage to list cpp-systems", stderr)
 	}
+	if !strings.Contains(stderr, "c-cli") {
+		t.Errorf("stderr = %q, want usage to list c-cli", stderr)
+	}
 }
 
 func TestInit_BackGoProfile(t *testing.T) {
@@ -103,8 +106,8 @@ func TestInit_BackGoProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "back-go"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"back-go\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.4.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.4.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -133,8 +136,8 @@ func TestInit_GameBevyProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "game-bevy"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"game-bevy\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.4.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.4.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -163,8 +166,8 @@ func TestInit_CppSystemsProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "cpp-systems"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"cpp-systems\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.4.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.4.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -172,6 +175,36 @@ func TestInit_CppSystemsProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !strings.Contains(string(agentsMD), "Profile: cpp-systems") {
+		t.Errorf("AGENTS.md = %q, want it to contain the rendered profile", agentsMD)
+	}
+}
+
+func TestInit_CCliProfile(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	repo := newGitRepo(t)
+	t.Chdir(repo)
+
+	_, stderr, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "c-cli"}) })
+	if code != 0 {
+		t.Fatalf("Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+
+	pointer, err := os.ReadFile(filepath.Join(repo, "toolbox.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(pointer), `profile = "c-cli"`) {
+		t.Errorf("toolbox.toml = %q, want it to contain profile = \"c-cli\"", pointer)
+	}
+	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
+	}
+
+	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(agentsMD), "Profile: c-cli") {
 		t.Errorf("AGENTS.md = %q, want it to contain the rendered profile", agentsMD)
 	}
 }

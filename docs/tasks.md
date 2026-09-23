@@ -485,13 +485,13 @@ Do not add tasks for any of these without a new ADR.
 
 ## Group 29 — Binary stamp (v1.5)
 
-- [ ] **29.1** `const tbVersion = "1.5.0"` in
+- [x] **29.1** `const tbVersion = "1.5.0"` in
       `cmd/tb/internal/cli/init.go`; init usage lists `c-cli`; doctor
       warns on missing `gcc` for `c-cli`; tests per design §22.5. Check:
       `rg 'tbVersion' cmd/tb` shows `1.5.0`;
       `cd cmd/tb && go test ./internal/config/ ./internal/cli/` covers
       `TestRealProfilesParse` and init `-p c-cli`.
-- [ ] **29.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+- [x] **29.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
       `go test ./...`; `go test -race ./...`. Check: all four pass.
 
 ## Group 30 — README

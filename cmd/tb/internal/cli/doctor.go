@@ -162,5 +162,9 @@ func reportToolchain(profileName string) {
 		if _, err := exec.LookPath("cmake"); err != nil {
 			fmt.Println("warn: cmake not found on PATH")
 		}
+	case "c-cli":
+		if _, err := exec.LookPath("gcc"); err != nil {
+			fmt.Println("warn: gcc not found on PATH")
+		}
 	}
 }

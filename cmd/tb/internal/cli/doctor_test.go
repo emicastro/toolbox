@@ -138,6 +138,30 @@ func TestDoctor_CppSystemsWarnsOnMissingCmakeNotCargoOrGo(t *testing.T) {
 	}
 }
 
+func TestDoctor_CCliWarnsOnMissingGccNotCargoOrGo(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	t.Setenv("HOME", t.TempDir())
+	// PATH has agents but no gcc, cargo, go, or cmake, so the toolchain
+	// warning is deterministic regardless of the host's real PATH.
+	withFakeAgentsOnPath(t, "claude", "grok")
+	t.Chdir(t.TempDir())
+
+	stdout, _, code := captureOutput(t, func() int {
+		return Doctor(toolboxHome, nil, []string{"-p", "c-cli"})
+	})
+	if code != 0 {
+		t.Errorf("Doctor() code = %d, want 0", code)
+	}
+	if !strings.Contains(stdout, "warn: gcc not found on PATH") {
+		t.Errorf("stdout = %q, want a missing-gcc warning for c-cli", stdout)
+	}
+	for _, other := range []string{"cargo", "go", "cmake"} {
+		if strings.Contains(stdout, "warn: "+other+" not found on PATH") {
+			t.Errorf("stdout = %q, want no %s warning for c-cli", stdout, other)
+		}
+	}
+}
+
 func TestDoctor_SkipsCwdProfileStepsWithoutToolboxTOML(t *testing.T) {
 	toolboxHome := newFixtureToolboxHome(t)
 	t.Setenv("HOME", t.TempDir())

@@ -70,6 +70,15 @@ templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
 [verify]
 summary = "ctest --test-dir build"
 `)
+	writeFile(t, filepath.Join(home, "profiles", "c-cli.toml"), `name = "c-cli"
+description = "fixture"
+persona = "default"
+skills = ["spec", "adr"]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "make test"
+`)
 
 	writeFile(t, filepath.Join(home, "templates", "AGENTS.md"), ""+
 		beginMarkerForTest+"\n"+

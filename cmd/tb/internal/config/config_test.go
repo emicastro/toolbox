@@ -146,14 +146,14 @@ skills = ["spec", "adr"]
 // TestRealProfilesParse is a regression check tying this parser to the
 // actual profiles this repo ships (profiles/rust-systems.toml,
 // profiles/infra-go.toml, profiles/back-go.toml, profiles/game-bevy.toml,
-// profiles/cpp-systems.toml)
+// profiles/cpp-systems.toml, profiles/c-cli.toml)
 // and its own toolbox.toml, so a future edit to either the parser or
 // those files that breaks compatibility fails here rather than only at
 // `tb init` time.
 func TestRealProfilesParse(t *testing.T) {
 	repoRoot := "../../../.."
 
-	for _, name := range []string{"rust-systems", "infra-go", "back-go", "game-bevy", "cpp-systems"} {
+	for _, name := range []string{"rust-systems", "infra-go", "back-go", "game-bevy", "cpp-systems", "c-cli"} {
 		path := filepath.Join(repoRoot, "profiles", name+".toml")
 		if _, err := os.Stat(path); err != nil {
 			t.Skipf("real profile %s not found at %s (repo layout changed?): %v", name, path, err)
