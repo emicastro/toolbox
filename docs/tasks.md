@@ -502,19 +502,19 @@ Do not add tasks for any of these without a new ADR.
 
 ## Group 31 — Acceptance (requirements §24, run manually on Arch)
 
-- [ ] **31.1** `tb init -p c-cli` in a fresh git repo: pointer
+- [x] **31.1** `tb init -p c-cli` in a fresh git repo: pointer
       `profile = "c-cli"` and `toolbox_version = "1.5.0"`; `AGENTS.md` has
       `Profile: c-cli`, `review`, `c-verify`, and `c-cli` on `Skills:`, no
       C++, Rust, or Go skill on `Skills:`, `Verify:` matching `c-verify`.
       Check: file contents.
-- [ ] **31.2** `tb init --force` in a rust-systems, infra-go, back-go,
+- [x] **31.2** `tb init --force` in a rust-systems, infra-go, back-go,
       game-bevy, and cpp-systems fixture: version stamp 1.5.0; prose
       outside markers unchanged; profile unchanged unless `-p`. Check:
       `git diff` / file contents.
-- [ ] **31.3** `tb install` links `c-verify` and `c-cli` into both agent
+- [x] **31.3** `tb install` links `c-verify` and `c-cli` into both agent
       skill dirs. Check: `readlink ~/.claude/skills/c-verify` and
       `~/.grok/skills/c-cli`.
-- [ ] **31.4** `tb doctor` exit 0 with both agents; cwd profile `c-cli`
+- [x] **31.4** `tb doctor` exit 0 with both agents; cwd profile `c-cli`
       warns on missing `gcc`, not `cargo`, `go`, or `cmake`. Check: exit
       code and output — on a host with `gcc` installed the manual run
       shows no warning, and the branch is proven by the unit test.
