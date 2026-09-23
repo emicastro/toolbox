@@ -466,19 +466,19 @@ Do not add tasks for any of these without a new ADR.
 
 ## Group 28 — Content (v1.5)
 
-- [ ] **28.1** `profiles/c-cli.toml` per design §22.1. Check:
+- [x] **28.1** `profiles/c-cli.toml` per design §22.1. Check:
       `rg 'c-verify", "c-cli' profiles/c-cli.toml`;
       `rg 'handoff", "review' profiles/c-cli.toml`;
       `rg 'aws-guard|cpp-|rust-|-go"' profiles/c-cli.toml` does not match
       the `skills` array.
-- [ ] **28.2** `skills/c-verify/SKILL.md` per design §22.3. Check:
+- [x] **28.2** `skills/c-verify/SKILL.md` per design §22.3. Check:
       frontmatter `name: c-verify`; the body contains `make test`, a
       fallback line with `-Werror`, `-fsanitize=address,undefined`, and
       `git status`.
-- [ ] **28.3** `skills/c-cli/SKILL.md` per design §22.4. Check:
+- [x] **28.3** `skills/c-cli/SKILL.md` per design §22.4. Check:
       frontmatter `name: c-cli`; `rg '^## ' skills/c-cli/SKILL.md` prints
       exactly the six headings in requirements §23.5.
-- [ ] **28.4** Pointer in `review` per design §22.4. Check:
+- [x] **28.4** Pointer in `review` per design §22.4. Check:
       `rg 'c-cli' skills/review/SKILL.md` matches;
       `git diff --stat skills/rust-verify skills/go-verify skills/cpp-verify
       skills/cpp-ggml` is empty.

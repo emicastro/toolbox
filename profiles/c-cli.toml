@@ -1,0 +1,12 @@
+name = "c-cli"
+description = "C programs you own and run - terminal tools and exercises, not C++ and not upstream ggml"
+persona = "default"                       # personas/<persona>.md
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "c-verify", "c-cli",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "make; make test; -std=c11 -Wall -Wextra -Werror; sanitizer build for anything touching memory; git status clean of build output"
