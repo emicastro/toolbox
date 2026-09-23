@@ -496,7 +496,7 @@ Do not add tasks for any of these without a new ADR.
 
 ## Group 30 — README
 
-- [ ] **30.1** `README.md` lists six profiles, `tb init -p c-cli`,
+- [x] **30.1** `README.md` lists six profiles, `tb init -p c-cli`,
       version 1.5.0, and the C verify block. Check: the profiles table has
       exactly six rows; the layout block names `c-cli.toml`.
 
