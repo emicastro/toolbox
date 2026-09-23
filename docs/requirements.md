@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1.4)
+# Toolbox — Requirements (v1.5)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18  
-Date: 2026-09-18  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta proposed 2026-09-22  
+Date: 2026-09-22  
 Command: `tb`  
-Source of truth for this product: this file. v1, v1.1, v1.2, and v1.3 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections at the end (ADR 0009). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, and v1.4 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections at the end (ADR 0010). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -500,3 +500,76 @@ On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
 7. `rust-verify`, `go-verify`, and the four earlier profile files are byte-unchanged by this increment.
 
 M1 is a follow-up, not a v1.4 gate.
+
+## 23. Delta from v1.4 (v1.5)
+
+Additive. Does not rewrite §3, §15, §17, §19, or §21. Versioning and the sixth profile: ADR 0010. Remaining v1 non-goals stay non-goals.
+
+### 23.1 Sixth profile
+
+§6.1 / §17.1 / §19.1 / §21.1 are amended: six profiles.
+
+| Profile | Use |
+|---|---|
+| `rust-systems` | Systems / low-level Rust, including greenfield and legacy crates — not Bevy games |
+| `infra-go` | Go CLIs, scripts, AWS/infra glue, one-shot jobs — not long-running HTTP backends |
+| `back-go` | Go HTTP services and APIs, greenfield and legacy — not CLIs or one-shot jobs |
+| `game-bevy` | Bevy games in Rust, greenfield and legacy — not systems crates or non-Bevy engines |
+| `cpp-systems` | C/C++ built with CMake — ggml-family repos (llama.cpp) and the user's own C++ projects |
+| `c-cli` | C programs the user owns and runs — terminal tools, TUIs, and exercise runners; not C++ and not upstream ggml |
+
+The scope axis is "runnable program the user owns", following `infra-go`. A C library or embedded variant is a later profile and a later ADR.
+
+### 23.2 Domain skills (`c-cli`)
+
+Process skills are unchanged from §15.2 (six, including `review` after `handoff`).
+
+`c-cli` also includes:
+
+- `c-verify` — `make` then `make test`; when the repo has no Makefile yet, the fallback compiler line `gcc -std=c11 -Wall -Wextra -Werror -g -o <bin> <sources>` plus whatever `pkg-config` flags the program needs; a `-fsanitize=address,undefined` build required for any diff touching allocation, buffers, or pointer arithmetic; `git status` clean of build output before a task is ticked.
+- `c-cli` — the six house-style rules in §23.5.
+
+No `aws-guard`. No `cpp-*`, no `rust-*`, and no `*-go` skill on this profile's skill list.
+
+Mutual skip: `c-cli` skips C++ and ggml-family work (use `cpp-ggml`); `cpp-ggml` already skips non-ggml C/C++.
+
+### 23.3 Build convention
+
+C has no `cargo` and no `go`, and the motivating repos have no build file at all. The build is a **Makefile, with a direct-compiler fallback**. The fallback is the bootstrap path, not a second-class one: a repo with no build file must compile before it can acquire a Makefile, so adding the Makefile is the first task the profile hands such a repo. Build commands kept in README prose or in C string literals are what this convention replaces, because they drift.
+
+Discovery-only verification (the `cpp-verify` approach of deferring to the target repo's CI) is not used: in these repos there is nothing to discover.
+
+### 23.4 `tb init` profile names
+
+§8.2 / §17.3 / §19.3 / §21.5 are amended: require a profile name `rust-systems`, `infra-go`, `back-go`, `game-bevy`, `cpp-systems`, or `c-cli`. Discovery of profile files on disk is still not in this increment.
+
+### 23.5 House style (`c-cli`)
+
+Six rules, same bar as the other house-style skills. Changing any at repo scope is an ADR in that product.
+
+1. The Makefile is the build — every repo has a Makefile with at least `all`, `test`, and `clean`; `make` builds, `make test` runs the tests and exits non-zero on failure; compiler flags are set once in `CFLAGS`. Build commands do not live in README prose or in C string literals. A repo with no Makefile builds through the `c-verify` fallback, and adding the Makefile is its first task.
+2. Warnings are errors — `-std=c11 -Wall -Wextra -Werror`, plus `-g`. A diff that introduces a warning fails. Fix the cause with the narrowest change: `(void)param;` for an intentionally unused parameter, the correct format specifier rather than a cast that hides a mismatch. No `#pragma GCC diagnostic` to make a build pass.
+3. Own every allocation and every buffer — prefer caller-owned structs and fixed capacities behind a `#define` to the heap. When allocating, check every `malloc` / `calloc` / `realloc` return, route `realloc` through a temporary so failure does not leak the original, and give every allocation one owner and one `free` on every path. Bound every buffer write: `snprintf` with `sizeof`, never `strcpy` / `strcat` / `sprintf` into a fixed array. A diff touching any of this gets the sanitizer build.
+4. One error convention, and exit codes that mean something — one convention per repo: functions return a status and the caller decides; only `main` or a clearly top-level function prints and exits. Errors go to `stderr`. Exit codes are 0 success, 1 failure, 2 usage error — the contract `tb` itself uses. A non-top-level module never calls `exit()`. An ncurses program calls `endwin()` before any error output and before exiting, so the terminal is restored.
+5. Headers declare, sources define — `#ifndef NAME_H` / `#define NAME_H` / `#endif` guards, not mixed with `#pragma once`. Headers hold declarations, types, and `#define` capacities; function bodies live in `.c` files. Every file-local function and variable is `static`. Each `.c` includes its own header first, so a header that is not self-contained fails to compile. `snake_case` for functions and variables.
+6. Build artifacts are not source — nothing the compiler produces is tracked: binaries, `*.o`, `*.a`, `*.so`, sanitizer builds, `*.dSYM/`, coverage files. `.gitignore` names every binary the Makefile produces. A tracked binary is a finding — it is also wrong for the next machine — and is untracked with `git rm --cached`, not by rewriting history.
+
+A dependency choice (ncurses or any other library), a C standard later than C11, a test framework, and `valgrind` / `clang-tidy` as required tools are not house style. Product ADRs or product convention if needed.
+
+### 23.6 Version stamp
+
+`tb init` / `tb init --force` writes `toolbox_version = "1.5.0"`. This repo's `schema_version` stays `"1"`.
+
+## 24. Acceptance (v1.5 done when)
+
+On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
+
+1. `tb init -p c-cli` in a fresh git repo writes `toolbox.toml` with `profile = "c-cli"` and `toolbox_version = "1.5.0"`; `AGENTS.md` has `Profile: c-cli`, `review`, `c-verify`, and `c-cli` on `Skills:`, no `cpp-*`, `rust-*`, or `*-go` skill on `Skills:`, and `Verify:` matching the `c-verify` recipe.
+2. `tb init --force` in a rust-systems, infra-go, back-go, game-bevy, and cpp-systems fixture writes `toolbox_version = "1.5.0"`; prose outside the managed-region markers is unchanged; the profile line does not change unless `-p` names a different profile.
+3. `tb install` links `c-verify` and `c-cli` into `~/.claude/skills` and `~/.grok/skills`.
+4. `tb doctor` is still clean aside from a genuinely missing agent (exit 0 with both present); with cwd profile `c-cli` it warns on missing `gcc`, not on missing `cargo`, `go`, or `cmake`.
+5. `skills/c-cli/SKILL.md` exists with `name`/`description` frontmatter and exactly the six house-style headings in §23.5.
+6. `skills/c-verify/SKILL.md` gives `make` / `make test`, the fallback compiler line containing `-Werror`, the sanitizer requirement, and the rule that `git status` shows no build output. `review` skill body mentions `c-cli`. `profiles/c-cli.toml` lists `review` after `handoff` and domain skills `c-verify`, `c-cli`.
+7. `rust-verify`, `go-verify`, `cpp-verify`, `cpp-ggml`, and the five earlier profile files are byte-unchanged by this increment.
+
+M1 is a follow-up, not a v1.5 gate.

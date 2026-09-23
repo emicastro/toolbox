@@ -1,16 +1,18 @@
-# Toolbox — Design (v1.4)
+# Toolbox — Design (v1.5)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18
-Date: 2026-09-18
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta proposed 2026-09-22
+Date: 2026-09-22
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
 delta in requirements §15, the v1.2 delta in requirements §17, the
-v1.3 delta in requirements §19, and the v1.4 delta in requirements §21.
+v1.3 delta in requirements §19, the v1.4 delta in requirements §21, and
+the v1.5 delta in requirements §23.
 It does
 not restate rationale already recorded in
-`docs/adr/000{1,2,3,4,5,6,7,8}-*.md` — those are cited, not re-argued.
+`docs/adr/0001-*.md` through `docs/adr/0010-*.md` — those are cited, not
+re-argued.
 v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16–§17;
-v1.3 is §18 onward.
+v1.3 is §18–§19; v1.4 is §20–§21; v1.5 is §22 onward.
 
 ## 1. Path resolution
 
@@ -866,3 +868,133 @@ No parser, render, install, or schema tests change shape.
 | 7. Earlier verify skills and profile files untouched | §20.1, §20.4 (additive only) |
 
 No item in requirements §22 lacks a mechanism above.
+
+## 22. v1.5 sixth profile `c-cli`
+
+Requirements §23. Versioning and the new profile: ADR 0010. No new `tb`
+subcommands. `schema_version` stays `"1"`. `tbVersion` becomes `"1.5.0"`.
+Profile files are still the §3.3 schema. Init does not discover profiles
+on disk — the usage list grows by one hardcoded name.
+
+### 22.1 Tree and profile file
+
+`$TOOLBOX_HOME/profiles/` also contains `c-cli.toml`.
+`$TOOLBOX_HOME/skills/` also contains `c-verify/SKILL.md` and
+`c-cli/SKILL.md`. `tb install` already links every `skills/*/SKILL.md`;
+no install-path change.
+
+`profiles/c-cli.toml`:
+
+```toml
+name = "c-cli"
+description = "C programs you own and run - terminal tools and exercises, not C++ and not upstream ggml"
+persona = "default"
+skills = [
+  "spec", "adr", "onboard", "scout", "handoff", "review",
+  "c-verify", "c-cli",
+]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/design.md",
+             "docs/tasks.md", "docs/session.md", "docs/adr/0000-template.md"]
+
+[verify]
+summary = "make; make test; -std=c11 -Wall -Wextra -Werror; sanitizer build for anything touching memory; git status clean of build output"
+```
+
+`review` after `handoff`. Domain skills and verify summary match
+requirements §23.2. No `aws-guard`. No `cpp-*`, `rust-*`, or `*-go` on
+this array. Unlike `cpp-systems`, the templates are used: `c-cli` is only
+ever wired to a repo the user owns, so `tb init` is the expected first
+step.
+
+### 22.2 Init usage and doctor toolchain
+
+§5.2 step 1 usage becomes
+`usage: tb init -p <rust-systems|infra-go|back-go|game-bevy|cpp-systems|c-cli> [--force]`.
+`LoadProfileByName` is unchanged.
+
+§5.3 step 6 gains a fourth branch: if the profile is `c-cli`, warn when
+`gcc` is not on PATH. One probe per profile stays the pattern; `gcc` is
+probed rather than `make` because a missing compiler fails every build
+path including the fallback, whereas a missing `make` fails only the
+preferred one (ADR 0010).
+
+### 22.3 Verify skill
+
+`skills/c-verify/SKILL.md` frontmatter `name` + `description`.
+Description must trigger before claiming done in a `c-cli` repo and after
+every change to C sources, headers, the Makefile, or CI, and skip only
+for edits touching none of those. Sections:
+
+1. **Commands** — `make` then `make test`. `make test` exits non-zero on
+   failure; a test binary that prints "ok" and returns 0 regardless is
+   not a test.
+2. **Fallback when there is no Makefile yet** — the direct compiler line
+   `gcc -std=c11 -Wall -Wextra -Werror -g -o <bin> <sources>` plus any
+   `pkg-config --cflags --libs <lib>` the program needs. The sources are
+   listed from the tree (`ls *.c`), not copied from README prose. Using
+   the fallback is a signal that the Makefile task is still open.
+3. **Sanitizers** — required for any diff touching allocation, buffers,
+   or pointer arithmetic: the same line with
+   `-fsanitize=address,undefined` into a separate `<bin>-asan`, then run
+   the tests against it. `make asan` when the Makefile provides it.
+4. **Artifacts** — after the recipe, `git status --short` shows no build
+   output. A binary appearing there means `.gitignore` is incomplete,
+   which is a finding.
+5. **Rules** — shared with the other verify skills: run the recipe
+   before ticking a task; evidence over narration; a pre-existing failure
+   is a finding, not something folded into the diff.
+
+### 22.4 House-style skill
+
+`skills/c-cli/SKILL.md` frontmatter `name` + `description`. Description
+must trigger on writing or reviewing C in a program the user owns —
+including Makefiles, headers, and memory or error-handling changes — and
+skip C++, ggml-family work (point at `cpp-ggml`), and non-C files. Body:
+exactly six `##` headings, wording matching requirements §23.5:
+
+1. The Makefile is the build
+2. Warnings are errors
+3. Own every allocation and every buffer
+4. One error convention, and exit codes that mean something
+5. Headers declare, sources define
+6. Build artifacts are not source
+
+The skill does not name a dependency (ncurses or otherwise), a C standard
+later than C11, a test framework, or a debugger. Changing any of the six
+at repo scope is an ADR in that product (`adr` skill).
+
+`review`'s house-style pass loads `rust-systems` / `infra-go` / `back-go`
+/ `game-bevy` / `cpp-ggml` / `c-cli` (and `aws-guard` when the diff
+touches AWS or secrets). `rust-verify`, `go-verify`, `cpp-verify`, and
+`cpp-ggml` are untouched.
+
+### 22.5 Tests
+
+- `TestRealProfilesParse` includes `c-cli` next to the five earlier
+  names.
+- CLI fixture `newFixtureToolboxHome` ships a minimal
+  `profiles/c-cli.toml` so `Init(..., []string{"-p", "c-cli"})` is
+  testable.
+- An init test: empty git repo, `-p c-cli`, `toolbox.toml` contains
+  `profile = "c-cli"` and `AGENTS.md` contains `Profile: c-cli`.
+- Doctor's toolchain branch for `c-cli` is the `gcc` path, not `cargo`,
+  `go`, or `cmake`.
+- The init usage-string test asserts `c-cli` is listed.
+- The existing `toolbox_version` assertions move from `1.4.0` to
+  `1.5.0`.
+
+No parser, render, install, or schema tests change shape.
+
+## 23. Traceability: v1.5 acceptance → design mechanism
+
+| Requirements §24 item | Mechanism |
+|---|---|
+| 1. `tb init -p c-cli` writes pointer 1.5.0 + region with `c-verify` / `c-cli` / `review` / no C++, Rust, or Go skill / C verify | §22.1, §22.2, `tbVersion`, §4 render |
+| 2. `--force` on the five earlier fixtures stamps 1.5.0; outside markers intact; profile unchanged unless `-p` | ADR 0002 merge, `tbVersion` |
+| 3. `tb install` links `c-verify` and `c-cli` | §5.1, `skills/c-verify/`, `skills/c-cli/` |
+| 4. `tb doctor` exit 0 with both agents; `c-cli` warns on `gcc` not `cargo` / `go` / `cmake` | §5.3, §7, §22.2 |
+| 5. `c-cli` skill has `name`/`description` and the six §23.5 headings | §22.4 |
+| 6. `c-verify` has make / fallback with `-Werror` / sanitizers / clean `git status`; `review` mentions `c-cli`; profile skill list | §22.1, §22.3, §22.4 |
+| 7. Earlier verify and house-style skills and profile files untouched | §22.1, §22.4 (additive only) |
+
+No item in requirements §24 lacks a mechanism above.

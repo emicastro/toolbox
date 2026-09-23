@@ -1,7 +1,7 @@
-# Toolbox — Tasks (v1.4)
+# Toolbox — Tasks (v1.5)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18
-Date: 2026-09-18
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 proposed 2026-09-22
+Date: 2026-09-22
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
 or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
@@ -446,3 +446,87 @@ sixth profile, no `tb` guard against initialising an upstream repo, no
 generic C/C++ house style, no CUDA/Metal/Vulkan sub-profile, no Python
 recipe for `gguf-py` / `convert_*.py`, and no wrapper around `ci/run.sh`.
 Do not add tasks for any of these without a new ADR.
+
+## Group 27 — Spec (v1.5)
+
+- [x] **27.1** ADR `docs/adr/0010-c-cli-profile-is-v1.5.md` as `proposed`
+      (no profile / extend `cpp-systems` / `c-systems` generic / `c-cli`
+      v1.5), recording the Makefile-with-fallback build and the `gcc`
+      doctor probe. Check: file exists, four MADR sections, four named
+      options, Decision is v1.5 + `c-cli`.
+- [x] **27.2** `docs/requirements.md` header v1.5; v1 through v1.4 body
+      unchanged; §23 delta + §24 acceptance. Check: every §24 item is a
+      line you can fail; `rg 'c-cli' docs/requirements.md` shows the new
+      profile.
+- [x] **27.3** `docs/design.md` §22–§23 cite 0010 and map §24 →
+      mechanism. Check: traceability table has one row per §24 item.
+- [ ] **27.4** User marks 0010 `accepted` (and this file's v1.5 groups
+      accepted). Check: ADR header says `Status: accepted`. Do not start
+      Group 28 until this box is ticked.
+
+## Group 28 — Content (v1.5)
+
+- [ ] **28.1** `profiles/c-cli.toml` per design §22.1. Check:
+      `rg 'c-verify", "c-cli' profiles/c-cli.toml`;
+      `rg 'handoff", "review' profiles/c-cli.toml`;
+      `rg 'aws-guard|cpp-|rust-|-go"' profiles/c-cli.toml` does not match
+      the `skills` array.
+- [ ] **28.2** `skills/c-verify/SKILL.md` per design §22.3. Check:
+      frontmatter `name: c-verify`; the body contains `make test`, a
+      fallback line with `-Werror`, `-fsanitize=address,undefined`, and
+      `git status`.
+- [ ] **28.3** `skills/c-cli/SKILL.md` per design §22.4. Check:
+      frontmatter `name: c-cli`; `rg '^## ' skills/c-cli/SKILL.md` prints
+      exactly the six headings in requirements §23.5.
+- [ ] **28.4** Pointer in `review` per design §22.4. Check:
+      `rg 'c-cli' skills/review/SKILL.md` matches;
+      `git diff --stat skills/rust-verify skills/go-verify skills/cpp-verify
+      skills/cpp-ggml` is empty.
+
+## Group 29 — Binary stamp (v1.5)
+
+- [ ] **29.1** `const tbVersion = "1.5.0"` in
+      `cmd/tb/internal/cli/init.go`; init usage lists `c-cli`; doctor
+      warns on missing `gcc` for `c-cli`; tests per design §22.5. Check:
+      `rg 'tbVersion' cmd/tb` shows `1.5.0`;
+      `cd cmd/tb && go test ./internal/config/ ./internal/cli/` covers
+      `TestRealProfilesParse` and init `-p c-cli`.
+- [ ] **29.2** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+      `go test ./...`; `go test -race ./...`. Check: all four pass.
+
+## Group 30 — README
+
+- [ ] **30.1** `README.md` lists six profiles, `tb init -p c-cli`,
+      version 1.5.0, and the C verify block. Check: the profiles table has
+      exactly six rows; the layout block names `c-cli.toml`.
+
+## Group 31 — Acceptance (requirements §24, run manually on Arch)
+
+- [ ] **31.1** `tb init -p c-cli` in a fresh git repo: pointer
+      `profile = "c-cli"` and `toolbox_version = "1.5.0"`; `AGENTS.md` has
+      `Profile: c-cli`, `review`, `c-verify`, and `c-cli` on `Skills:`, no
+      C++, Rust, or Go skill on `Skills:`, `Verify:` matching `c-verify`.
+      Check: file contents.
+- [ ] **31.2** `tb init --force` in a rust-systems, infra-go, back-go,
+      game-bevy, and cpp-systems fixture: version stamp 1.5.0; prose
+      outside markers unchanged; profile unchanged unless `-p`. Check:
+      `git diff` / file contents.
+- [ ] **31.3** `tb install` links `c-verify` and `c-cli` into both agent
+      skill dirs. Check: `readlink ~/.claude/skills/c-verify` and
+      `~/.grok/skills/c-cli`.
+- [ ] **31.4** `tb doctor` exit 0 with both agents; cwd profile `c-cli`
+      warns on missing `gcc`, not `cargo`, `go`, or `cmake`. Check: exit
+      code and output — on a host with `gcc` installed the manual run
+      shows no warning, and the branch is proven by the unit test.
+
+## Explicitly out of scope for groups 27–31
+
+Per requirements §23 and ADR 0010: no MCP server, no `tb verify` wrapper,
+no per-repo skill add/rm CLI, no persona switch CLI, no other agents, no
+seventh profile, no C library or embedded variant, no ncurses or other
+dependency pin, no `valgrind` or `clang-tidy` as required tools, and no
+change to the five existing profiles' content. Adding Makefiles and
+`.gitignore`s to `algorithm-visualizer` and `clings`, untracking their
+committed binaries, and fixing the defects the survey found in
+`clings.c` is work in those repos, not here. Do not add tasks for any of
+these without a new ADR.
