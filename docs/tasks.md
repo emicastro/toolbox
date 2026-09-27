@@ -530,3 +530,73 @@ change to the five existing profiles' content. Adding Makefiles and
 committed binaries, and fixing the defects the survey found in
 `clings.c` is work in those repos, not here. Do not add tasks for any of
 these without a new ADR.
+
+## Group 32 — Spec (v1.6)
+
+- [x] **32.1** ADR `docs/adr/0011-trainer-maker-and-cpp-cmake-verify-is-v1.6.md`
+      as `accepted` (rejecting: bake trainer content into `cpp-systems`/
+      `cpp-ggml`; a new full profile; patching `cpp-verify` with a
+      conditional branch; reusing `cpp-verify` unmodified). Check: file
+      exists, four MADR sections, both forks each name and reject their
+      alternatives, Decision is v1.6 + two new skills, no profile.
+- [x] **32.2** `docs/requirements.md` header v1.6; v1 through v1.5 body
+      unchanged; §25 delta + §26 acceptance. Check:
+      `rg 'trainer-maker|cpp-cmake-verify' docs/requirements.md` shows both;
+      every §26 item is a line you can fail.
+- [x] **32.3** `docs/design.md` §24–§25 cite 0011 and map §26 →
+      mechanism. Check: traceability table has one row per §26 item.
+
+## Group 33 — Content (v1.6)
+
+- [x] **33.1** `skills/trainer-maker/SKILL.md` per design §24.2. Check:
+      frontmatter `name: trainer-maker`; `rg '^## ' skills/trainer-maker/SKILL.md`
+      prints exactly eight headings; `rg -i 'c\+\+|cmake|inference'
+      skills/trainer-maker/SKILL.md` matches nothing in the frontmatter
+      `description` line.
+- [x] **33.2** `skills/cpp-cmake-verify/SKILL.md` per design §24.3. Check:
+      frontmatter `name: cpp-cmake-verify`; body contains `ctest --test-dir
+      build -L main`, `clang-format`, and a sanitizer-build line; `rg
+      'ci/run.sh|test-backend-ops' skills/cpp-cmake-verify/SKILL.md`
+      matches nothing.
+- [x] **33.3** `skills/cpp-verify/SKILL.md` description gains the
+      mutual-skip clause per design §24.4. Check: `rg 'cpp-cmake-verify'
+      skills/cpp-verify/SKILL.md` matches exactly once; `git diff
+      skills/cpp-verify/SKILL.md` touches only the frontmatter
+      `description` line.
+- [x] **33.4** Pointer in `review` per design §24.5. Check: `rg
+      'trainer-maker' skills/review/SKILL.md` and `rg 'cpp-cmake-verify'
+      skills/review/SKILL.md` both match; `git diff --stat profiles/
+      cmd/tb/` is empty.
+
+## Group 34 — README (v1.6)
+
+- [x] **34.1** `README.md` documents `trainer-maker` and
+      `cpp-cmake-verify` in a subsection separate from the profile table,
+      per design §24.6. Check: `rg 'trainer-maker|cpp-cmake-verify'
+      README.md` shows both; the six-row profile table is unchanged.
+
+## Group 35 — Acceptance (requirements §26, run manually on Arch)
+
+- [x] **35.1** `skills/trainer-maker/SKILL.md` and
+      `skills/cpp-cmake-verify/SKILL.md` exist with correct frontmatter and
+      content per §26.1–§26.2. Check: file contents.
+- [x] **35.2** `cpp-verify`'s body is byte-unchanged; only its description
+      gained one clause. Check: `git diff skills/cpp-verify/SKILL.md`.
+- [x] **35.3** `review` and `README.md` mention both new skills. Check:
+      `rg` as in 33.4 and 34.1.
+- [x] **35.4** No `profiles/*.toml` file changed; `cmd/tb/**` byte-unchanged.
+      Check: `git diff --stat profiles/ cmd/tb/` is empty.
+- [x] **35.5** `tb install` links `trainer-maker` and `cpp-cmake-verify`
+      into both agent skill dirs. Check: `readlink
+      ~/.claude/skills/trainer-maker` and `~/.grok/skills/cpp-cmake-verify`.
+
+## Explicitly out of scope for groups 32–35
+
+Per requirements §25 and ADR 0011: no seventh profile, no `tb`/Go code
+change, no `tbVersion` bump, no change to any existing profile's `skills`
+array, no change to `cpp-ggml`'s body, no generic C/C++ house-style skill
+beyond what `cpp-cmake-verify` needs. Retrofitting `cpp-trials` to use
+`trainer-maker` and `cpp-cmake-verify` is a separate follow-up done in that
+repo, after this ADR is accepted and `tb install` has re-linked skills
+machine-wide — not tracked in this file. Do not add tasks for any of these
+without a new ADR.

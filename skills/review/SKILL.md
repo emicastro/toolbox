@@ -21,7 +21,11 @@ finding to a new task.
    skill).
 3. **House style** — load the profile domain skill (`rust-systems`,
    `infra-go`, `back-go`, `game-bevy`, `cpp-ggml` for `cpp-systems`, or
-   `c-cli`) and `aws-guard` when the diff touches AWS or secrets. Do not restate
+   `c-cli`) and `aws-guard` when the diff touches AWS or secrets. When
+   building or reviewing a rustlings-style exercise trainer, also load
+   `trainer-maker`, paired with the repo's own verify/house-style skill; for
+   a plain CMake C++ repo with no ggml/backend matrix, that pairing is
+   `cpp-cmake-verify` rather than `cpp-ggml`/`cpp-verify`. Do not restate
    those skills here. In a repo the user does not own, that repo's own
    `AGENTS.md` / `CONTRIBUTING.md` outrank the domain skill and this one.
 4. **Verify** — the recipe was actually run this session; output is in

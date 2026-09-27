@@ -8,9 +8,10 @@ own `docs/` (including ADRs).
 Toolbox is not an MCP server, not a daemon, not a marketplace, and not part
 of any product crate.
 
-Source of truth for v1.5: [`docs/requirements.md`](docs/requirements.md).
+Source of truth for v1.6: [`docs/requirements.md`](docs/requirements.md).
 How it is built: [`docs/design.md`](docs/design.md). Recorded forks:
-[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.5.0"`.
+[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.5.0"`
+(unchanged by v1.6, which adds skills but no profile).
 
 ## What it does
 
@@ -104,7 +105,7 @@ failure, `2` usage error.
 `tb doctor` only hard-fails when **zero** agents are detected. Missing skill
 links and a missing `cargo`/`go`/`cmake`/`gcc` are warnings.
 
-## Profiles (v1.5)
+## Profiles (v1.6)
 
 | Profile | Use | Extra skills |
 |---|---|---|
@@ -190,6 +191,28 @@ The gcc line is the bootstrap for a repo that has no Makefile yet;
 adding the Makefile is that repo's first task. Unlike `cpp-systems`,
 `c-cli` is only for repos you own, so `tb init -p c-cli` is the expected
 first step.
+
+## Skills outside a profile's list (v1.6)
+
+Not every skill belongs to exactly one profile's `skills` array. `tb
+install` symlinks every skill in `skills/` into both agents regardless of
+profile membership, and a skill triggers off its own `description`
+independent of which profile a repo declares. Two skills use this directly:
+
+| Skill | Use | Pair with |
+|---|---|---|
+| `trainer-maker` | Building or reviewing a rustlings-style exercise trainer, in any language or subject domain | Your profile's own verify/house-style skill for the toolchain (`cpp-cmake-verify`, `rust-verify`, `go-verify`, ...) |
+| `cpp-cmake-verify` | Verify recipe for a plain CMake C++ project with no ggml/backend matrix | Nothing extra needed; alternative to `cpp-verify` for a repo that is not ggml-family |
+
+`cpp-cmake-verify` exists because `cpp-verify`'s worked commands are
+llama.cpp-shaped (`-DLLAMA_FATAL_WARNINGS=ON`, `test-backend-ops`,
+`ci/run.sh`) and do not fit a plain CMake C++ repo, even though
+`cpp-systems`'s own description already claims that audience. Neither new
+skill is added to `profiles/cpp-systems.toml`'s `skills` array — attach
+them to a repo's `AGENTS.md` `Skills:`/`Verify:` lines by hand if you want
+them documented there, keeping in mind that `tb init --force` regenerates
+that managed region from the profile file and will not know about a
+hand-edit.
 
 ## Layout
 

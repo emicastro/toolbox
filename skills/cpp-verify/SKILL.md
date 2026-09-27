@@ -1,6 +1,6 @@
 ---
 name: cpp-verify
-description: Use before claiming any task done in a `cpp-systems` repo, and after every change to C/C++ sources, CMake, CI, or shaders — this is the verify recipe (`cmake -B build`; `cmake --build build -j`; `ctest --test-dir build -L main --output-on-failure`; `clang-format` on added lines; `test-backend-ops` when `ggml/` changed); skip only for edits that touch none of those.
+description: Use before claiming any task done in a `cpp-systems` repo, and after every change to C/C++ sources, CMake, CI, or shaders — this is the verify recipe (`cmake -B build`; `cmake --build build -j`; `ctest --test-dir build -L main --output-on-failure`; `clang-format` on added lines; `test-backend-ops` when `ggml/` changed); skip only for edits that touch none of those, and skip for a plain CMake C++ project with no ggml/backend matrix (use `cpp-cmake-verify` instead).
 ---
 
 # cpp-verify

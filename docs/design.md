@@ -997,4 +997,105 @@ No parser, render, install, or schema tests change shape.
 | 6. `c-verify` has make / fallback with `-Werror` / sanitizers / clean `git status`; `review` mentions `c-cli`; profile skill list | §22.1, §22.3, §22.4 |
 | 7. Earlier verify and house-style skills and profile files untouched | §22.1, §22.4 (additive only) |
 
+## 24. v1.6 — `trainer-maker` and `cpp-cmake-verify` (no new profile)
+
+Requirements §25. Versioning: ADR 0011. No new `tb` subcommand, no new
+profile, no `schema_version` or `tbVersion` change — this is the first
+increment where the spec version (v1.6) and `tbVersion` (`"1.5.0"`,
+unchanged) diverge, because nothing in `cmd/tb` reads or renders either new
+skill differently from any other symlinked skill.
+
+Unlike §18–§23, there is no "tree and profile file", "init usage and doctor
+toolchain", or "tests" subsection here: no `profiles/*.toml` is added, so
+none of that machinery is touched.
+
+### 24.1 Skill files
+
+`$TOOLBOX_HOME/skills/` gains `trainer-maker/SKILL.md` and
+`cpp-cmake-verify/SKILL.md`. `tb install` already links every
+`skills/*/SKILL.md`; no install-path change. Neither file is referenced by
+any `profiles/*.toml` — the first skills in this repo that are not.
+
+### 24.2 `trainer-maker` content
+
+Frontmatter `name`/`description`:
+
+```
+name: trainer-maker
+description: Use when writing or reviewing a rustlings-style exercise trainer — an ordered set of small broken programs a learner fixes and unlocks one at a time, checked on save, in any language or subject domain; skip for the exercises' own subject-matter content and for any single language's compiler/toolchain mechanics (pair this with your profile's own verify/house-style skill for that).
+```
+
+Body, eight `##` headings (requirements §25.1):
+
+1. Manifest and anti-spoiler workspace
+2. A passing check is not "move on"
+3. `watch` is the default command, with a fixed loop shape
+4. The check protocol is minimal and runner-owned
+5. Reproducible commands, one color policy
+6. State is small, atomic, and independent of any subprocess it starts
+7. Standard CLI surface
+8. Ship bundled; keep maintainer tooling and docs layering separate from
+   the learner path
+
+Each heading's body names the specific mechanism that is a repo-scope
+design fork (manifest format, watch backend, signal/process mechanism) so
+the skill states the durable rule without dictating an implementation. A
+closing line matches the `rust-systems`/`c-cli` convention: changing any of
+the eight at repo scope needs an ADR; compiler/toolchain invocation
+mechanics, a "the toolchain must refuse this" exercise mechanism, and the
+course content itself are not house style here.
+
+### 24.3 `cpp-cmake-verify` content
+
+Frontmatter:
+
+```
+name: cpp-cmake-verify
+description: Use before claiming any task done in a plain CMake C++ project with no ggml/backend matrix, and after every change to C/C++ sources, CMake, or CI — this is the verify recipe (cmake -B build; cmake --build build -j; ctest --test-dir build -L main --output-on-failure; clang-format on added lines; a sanitizer build for memory-touching diffs); skip for ggml-family repos (use cpp-verify instead) and for non-C++ files.
+```
+
+Body: `cmake -B build`; `cmake --build build -j`; `ctest --test-dir build -L
+main --output-on-failure`; clang-format on added lines only; a sanitizer
+build for memory-touching diffs, naming the repo's own CMake sanitizer
+option (confirmed against its `CMakeLists.txt`, never assumed to be
+`LLAMA_SANITIZE_ADDRESS`); `git status` clean of build output. No
+`ci/run.sh`, no `test-backend-ops`, no backend-parity language — those stay
+`cpp-verify`'s.
+
+### 24.4 `cpp-verify` mutual-skip edit
+
+`skills/cpp-verify/SKILL.md` frontmatter `description` gains one trailing
+clause: `; skip for a plain CMake C++ project with no ggml/backend matrix
+(use \`cpp-cmake-verify\` instead)`. No change to its body or recipe.
+
+### 24.5 `review` pointer edit
+
+`skills/review/SKILL.md`'s house-style pass item 3 extends its
+parenthetical list to also name `trainer-maker` (paired with the profile's
+own verify/house-style skill, when building an exercise trainer) and
+`cpp-cmake-verify` (the non-ggml CMake alternative to `cpp-ggml`/
+`cpp-verify`).
+
+### 24.6 `README.md` structural addition
+
+A new subsection, after the profile table, documenting skills that are not
+tied to any one profile's `skills` array: `trainer-maker` and
+`cpp-cmake-verify`. The existing "Profiles (v1.5)" table is unchanged in
+content (still six profiles); only prose that names the spec version moves
+to v1.6.
+
+## 25. Traceability: v1.6 acceptance → design mechanism
+
+| Requirements §26 item | Mechanism |
+|---|---|
+| 1. `trainer-maker` has `name`/`description`, eight headings, no C++/CMake/inference in its description | §24.2 |
+| 2. `cpp-cmake-verify` has the CMake commands and a mutual-skip clause | §24.3 |
+| 3. `cpp-verify`'s description gains one clause; body unchanged | §24.4 |
+| 4. `review` mentions both new skills | §24.5 |
+| 5. `README.md` documents both in their own subsection | §24.6 |
+| 6. No profile or `cmd/tb` change; no new Go test required | §24.1 (no profile wiring) |
+| 7. `tb install` links both new skills | §5.1 (existing symlink-every-skill behavior, unchanged) |
+
+No item in requirements §26 lacks a mechanism above.
+
 No item in requirements §24 lacks a mechanism above.

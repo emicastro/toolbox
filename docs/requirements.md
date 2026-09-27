@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1.5)
+# Toolbox — Requirements (v1.6)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22  
-Date: 2026-09-22  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; v1.6 delta accepted 2026-09-27  
+Date: 2026-09-27  
 Command: `tb`  
-Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, and v1.4 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections at the end (ADR 0010). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, v1.4, and v1.5 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections (ADR 0010). v1.6 is the **Delta from v1.5** and **Acceptance (v1.6)** sections at the end (ADR 0011). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -573,3 +573,79 @@ On Arch, after `git pull` in `$TOOLBOX_HOME` and a rebuild of `tb`:
 7. `rust-verify`, `go-verify`, `cpp-verify`, `cpp-ggml`, and the five earlier profile files are byte-unchanged by this increment.
 
 M1 is a follow-up, not a v1.5 gate.
+
+## 25. Delta from v1.5 (v1.6)
+
+Additive. Does not rewrite any earlier section. No new profile, no `tb`
+code change. ADR 0011.
+
+### 25.1 `trainer-maker` skill
+
+A standalone, language- and domain-agnostic house-style skill for building
+or reviewing a rustlings-style exercise trainer: an ordered set of small
+broken programs a learner fixes and unlocks one at a time, checked on save.
+It is not attached to any profile's `skills` array — it triggers off its
+own `description`, the same mechanism every other skill uses, and is meant
+to be paired with whichever verify/house-style skill the repo's actual
+profile already provides for its toolchain. Its description names no
+language, toolchain, or subject domain.
+
+Eight rules: manifest and anti-spoiler workspace; a passing check is not
+"move on"; `watch` as the default command with a fixed loop shape; a
+minimal, runner-owned check protocol; reproducible commands and one color
+policy; state that is small, atomic, and independent of any subprocess it
+starts; a standard CLI surface (`init`, `watch`, `run`, `hint`, `list`,
+`verify`, `reset`, `--help`, `--version`); ship bundled, with maintainer
+tooling and layered docs kept off the learner's command surface. Each rule
+names what at repo scope is a design fork requiring an ADR (manifest
+format, watch backend, signal/process mechanism) rather than baking a
+specific mechanism into the skill.
+
+### 25.2 `cpp-cmake-verify` skill
+
+A generic verify recipe for a plain CMake C++ project with no ggml/backend
+matrix — the audience `cpp-systems`' own description already claims ("the
+user's own C++ projects") but that `cpp-verify`'s llama.cpp-shaped body does
+not actually serve. Commands: `cmake -B build`; `cmake --build build -j`;
+`ctest --test-dir build -L main --output-on-failure`; clang-format on added
+lines only; a sanitizer build for memory-touching diffs, using the repo's
+own CMake sanitizer option confirmed against its actual `CMakeLists.txt`,
+not assumed; `git status` clean of build output before a task is ticked. No
+`ci/run.sh`, no `test-backend-ops`, no backend-parity language.
+
+Mutual skip: `cpp-cmake-verify` skips ggml-family repos (use `cpp-verify`);
+`cpp-verify`'s description gains one clause skipping a plain CMake C++
+project with no ggml/backend matrix (use `cpp-cmake-verify`). No change to
+`cpp-verify`'s body or recipe.
+
+### 25.3 `review` and `README.md`
+
+`review`'s house-style pass item names `trainer-maker` and
+`cpp-cmake-verify` alongside the existing per-profile domain skills.
+`README.md` gains a subsection documenting skills that exist outside any
+profile's fixed `skills` array — the first time this has happened.
+
+### 25.4 Version stamp
+
+No `tbVersion` change. `tb init` / `tb init --force` still writes
+`toolbox_version = "1.5.0"` for every existing profile; none of the six
+profile files change. This spec's own version (v1.6) tracks the skill
+catalog, not the binary's stamped output, which is unaffected by this
+increment.
+
+## 26. Acceptance (v1.6 done when)
+
+1. `skills/trainer-maker/SKILL.md` exists with `name`/`description`
+   frontmatter and exactly the eight numbered headings in §25.1; the
+   description does not mention C++, CMake, or inference anywhere.
+2. `skills/cpp-cmake-verify/SKILL.md` exists with the commands in §25.2 and
+   a mutual-skip clause naming `cpp-verify`.
+3. `skills/cpp-verify/SKILL.md`'s description gains exactly one clause
+   naming `cpp-cmake-verify`; its body is byte-unchanged.
+4. `review` skill body mentions `trainer-maker` and `cpp-cmake-verify`.
+5. `README.md` documents both skills in a subsection separate from the
+   profile table.
+6. No `profiles/*.toml` file changes; `cmd/tb/**` is byte-unchanged; no new
+   Go test is required because no Go behavior changed.
+7. `tb install` links `trainer-maker` and `cpp-cmake-verify` into
+   `~/.claude/skills` and `~/.grok/skills`.
