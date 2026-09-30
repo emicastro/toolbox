@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.5)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22. Groups 36–37 (teach path) completed 2026-09-29.
 Date: 2026-09-22
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -600,3 +600,40 @@ beyond what `cpp-cmake-verify` needs. Retrofitting `cpp-trials` to use
 repo, after this ADR is accepted and `tb install` has re-linked skills
 machine-wide — not tracked in this file. Do not add tasks for any of these
 without a new ADR.
+
+## Group 36 — Content (teach path)
+
+Follow `docs/design.md` §26. Do not edit `profiles/`, `cmd/tb/`, `README.md`,
+or any skill besides `teach`. Do not edit the four existing teach format files.
+
+- [x] **36.1** Add `skills/teach/PATH-FORMAT.md` per design §26.2.
+      Check: `rg -q 'kind: concept' skills/teach/PATH-FORMAT.md` and
+      `rg -q 'in-progress' skills/teach/PATH-FORMAT.md` and
+      `rg -q 'status: sketched' skills/teach/PATH-FORMAT.md` and
+      `rg -q 'next calendar day' skills/teach/PATH-FORMAT.md` and
+      `rg -q 'implicated' skills/teach/PATH-FORMAT.md`.
+- [x] **36.2** Edit `skills/teach/SKILL.md` per design §26.1, §26.3, and
+      §26.4. Link `PATH-FORMAT.md`. Keep the mission, sources, glossary,
+      learning-record, retrieval, and product-repo sections.
+      Check: `rg -q 'Learn/<slug>' skills/teach/SKILL.md` and
+      `rg -q '\.obsidian' skills/teach/SKILL.md` and
+      `rg -q 'toolbox.toml' skills/teach/SKILL.md` and
+      `rg -q 'PATH-FORMAT.md' skills/teach/SKILL.md` and
+      `rg -q 'one harder' skills/teach/SKILL.md` and
+      `rg -q 'practice page' skills/teach/SKILL.md` and
+      `rg -q 'vault course with a path of levels' skills/teach/SKILL.md`.
+
+## Group 37 — Acceptance (requirements §28)
+
+- [x] **37.1** Run the checks in 36.1 and 36.2, plus:
+      `rg -q 'MISSION.md' skills/teach/SKILL.md` and
+      `rg -q 'RESOURCES.md' skills/teach/SKILL.md` and
+      `rg -q 'learning-records' skills/teach/SKILL.md` and
+      `rg -q 'retrieval practice' skills/teach/SKILL.md`.
+      Check: each `rg -q` exits 0.
+- [x] **37.2** The four existing format files are byte-unchanged, and the
+      diff outside `skills/teach/SKILL.md` and `skills/teach/PATH-FORMAT.md`
+      does not touch `profiles/`, `cmd/tb/`, or any other skill.
+      Check: `git diff --exit-code -- skills/teach/MISSION-FORMAT.md skills/teach/GLOSSARY-FORMAT.md skills/teach/RESOURCES-FORMAT.md skills/teach/LEARNING-RECORD-FORMAT.md`
+      and
+      `bad=$(git diff --name-only -- profiles cmd/tb skills | grep -v -E '^(skills/teach/SKILL.md|skills/teach/PATH-FORMAT.md)$' || true); test -z "$bad"`.

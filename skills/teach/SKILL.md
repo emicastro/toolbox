@@ -1,146 +1,143 @@
 ---
 name: teach
-description: Use when the user wants to learn a topic over multiple sessions in a dedicated teaching workspace; skip in a product repo (toolbox.toml, Cargo.toml, go.mod at cwd) unless they name a directory that is not the product root.
+description: Use when the user wants to learn a topic over multiple sessions — a vault course with a path of levels, chat quizzes, and an exam per level; skip in a product repo (toolbox.toml, Cargo.toml, go.mod at cwd) unless they name a directory that is not the product root.
 argument-hint: "What would you like to learn about?"
 ---
 
 # teach
 
-The user has asked you to teach them something. This is a stateful request - they intend to learn the topic over multiple sessions.
+The user has asked you to teach them something. This is a stateful request — they intend to learn the topic over multiple sessions. The terminal session is the lesson. The course files are what the next session, in either agent, reads.
 
 ## Teaching Workspace
 
-Do not treat a product repo as the teaching workspace. If cwd has
-`toolbox.toml`, `Cargo.toml`, `go.mod`, or a generated `AGENTS.md`, stop
-and ask for a dedicated directory (create it if they name one). Only then
-write teaching files.
+A product repo is never the course. If cwd has `toolbox.toml`, `Cargo.toml`, `go.mod`, or a generated `AGENTS.md`, do not write the course there.
+
+Resolve the vault in this order:
+
+1. Walk ancestors of cwd for `.obsidian`. The nearest one is the vault.
+2. Else, if `~/Documents/Obsidian Vault/.obsidian` exists, that is the vault.
+3. Else ask for the vault root and stop.
+
+Do not scan `$HOME` for other vaults. The slug is the lowercase dash-case of the topic. The course is `<vault>/Learn/<slug>/`. Create that directory only after the mission interview has a concrete why.
 
 The state of their learning is captured in this directory in several files:
 
-- `MISSION.md`: A document capturing the _reason_ the user is interested in the topic. This should be used to ground all teaching. Use the format in [MISSION-FORMAT.md](./MISSION-FORMAT.md).
-- `GLOSSARY.md`: Canonical terms for this workspace. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). Once a term is here, every lesson uses it.
-- `./reference/*.html`: Other compressed reference (cheat sheets, algorithms, syntax). Beautiful documents which print well, designed for quick lookup.
-- `RESOURCES.md`: A list of resources which can be explored to ground your teaching in contextual knowledge, or to acquire knowledge and wisdom. Use the format in [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md).
-- `./learning-records/*.md`: A directory of learning records, which capture what the user has learned. These are loosely equivalent to architectural decision records in software development - they capture non-obvious lessons and key insights that may need to be revised later, or drive future sessions. These should be used to calculate the zone of proximal development. They are titled `0001-<dash-case-name>.md`, where the number increments each time. Use the format in [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md).
-- `./lessons/*.html`: A directory of lessons. A **lesson** is a single, self-contained HTML output that teaches one tightly-scoped thing tied to the mission. This is the primary unit of teaching in this workspace.
-- `./assets/*`: Reusable **components** shared across lessons. See [Assets](#assets).
-- `NOTES.md`: A scratchpad for you to jot down user preferences, or working notes.
+- `MISSION.md`: The reason the user is learning this topic. Ground every session in it. Use the format in [MISSION-FORMAT.md](./MISSION-FORMAT.md).
+- `GLOSSARY.md`: Canonical terms for this course. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). Once a term is here, every session uses it.
+- `PATH.md`: The path. Node sections are the record; the Mermaid map is rebuilt from them. Use the format in [PATH-FORMAT.md](./PATH-FORMAT.md). Do not repeat that schema here.
+- `./reference/*.html`: Compressed reference (cheat sheets, algorithms, syntax). Beautiful documents which print well, designed for quick lookup.
+- `RESOURCES.md`: Trusted sources. Use the format in [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md).
+- `./learning-records/*.md`: What the user has actually shown they know. Use these, with the path, to judge the zone of proximal development. Titled `0001-<dash-case-name>.md`. Use the format in [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md).
+- `./lessons/*.html`: Optional practice pages. Not one per node. See [Practice page](#practice-page).
+- `./assets/*`: Reusable components shared across practice pages. See [Assets](#assets).
+- `NOTES.md`: Preferences and working notes.
 
 ## Philosophy
 
 To learn at a deep level, the user needs three things:
 
 - **Knowledge**, captured from high-quality, high-trust resources
-- **Skills**, acquired through highly-relevant interactive lessons devised by you, based on the knowledge
+- **Skills**, acquired through practice on the path, based on that knowledge
 - **Wisdom**, which comes from interacting with other learners and practitioners
 
-Before the `RESOURCES.md` is well-populated, your focus should be to find high-quality resources which will help the user acquire knowledge. Never trust your parametric knowledge.
+Before `RESOURCES.md` is well-populated, find high-quality resources. Never trust parametric knowledge.
 
 Some topics may require more skills than knowledge. Learning more about theoretical physics might be more knowledge-based. For physical work, more skills-based.
 
 ### Fluency vs Storage Strength
 
-You should be careful to split between two types of learning:
+Split two kinds of learning:
 
 - **Fluency strength**: in-the-moment retrieval of knowledge
 - **Storage strength**: long-term retention of knowledge
 
-Fluency can give the user an illusory sense of mastery, but storage strength is the real goal. Try to design lessons which build long-term retention by desirable difficulty:
+Fluency can feel like mastery. Storage strength is the goal. Build it with desirable difficulty:
 
 - Using retrieval practice (recall from memory)
-- Spacing (distributing practice over time)
-- Interleaving (mixing up different but related topics in practice - for skills practice only)
+- Spacing (the level exam is the spaced check)
+- Interleaving (mixing related topics in practice — for skills practice only)
 
-## Lessons
+## Session
 
-A lesson is the main thing you produce: the unit in which knowledge and skills reach the user. Each lesson is one self-contained HTML file, saved to `./lessons/` and titled `0001-<dash-case-name>.html` where the number increments each time.
+Read `MISSION.md`, `PATH.md`, and `./learning-records/` once the course exists. Rebuild the map from the node sections, per [PATH-FORMAT.md](./PATH-FORMAT.md), before any teaching.
 
-A lesson should be **beautiful**, with clean, readable typography and layout, since the user will return to these later to review. Think Tufte.
+1. Resolve the course as above. If `MISSION.md` is empty or missing, interview until the why is concrete, then create the directory and write it.
+2. If `PATH.md` is missing: probe, write sources into `RESOURCES.md`, write Level 1 in full and later levels as sketched titles, show `PATH.md`, and wait. Do not teach the first node of a level until the user accepts the map.
+3. If the open level's exam is `ready` and `due` is today or earlier, or `override` is `user`, give the exam before any new node. Pass and failure follow [PATH-FORMAT.md](./PATH-FORMAT.md).
+4. Else if a node is `in-progress`, resume it.
+5. Else teach one `ready` concept or practice. If several are ready, pick the one whose source serves the mission. If still tied, ask. Set it `in-progress` when teaching starts.
+6. If every concept and practice in the open level is `passed` and the exam is not yet due, tell the learner the exam date and stop. Do not expand the next level.
+7. After an exam passes, close the level. Expanding the next level is a new plan step — probe, sources, nodes, show `PATH.md`, and wait — not the same turn as the exam.
 
-The lesson should be short, and completable very quickly. Learners' working memory is very small, and we need to stay within it. But each lesson should give the user a single tangible win that they can build on. It should be directly tied to the mission, and should be in the user's zone of proximal development.
+The chat quiz is the only writer of node status. A practice page does not set status.
 
-If possible, open the lesson file for the user (`xdg-open`, `open`, or the editor).
+Before creating `PATH.md`, and again before expanding a sketched level: for each strand that level will use, ask one question. If the answer is right, ask one harder question, then stop that strand. Do not probe a later level in that session unless the user asks.
 
-Each lesson should link via HTML anchors to other lessons and reference documents.
+Teach one node in four moves, then the quiz. Motivate why this node is next. Establish it from its source. Connect it to the nodes in `requires`. Quiz in chat. A miss leaves the node `in-progress`; repair it before building on it. A pass sets `passed` and writes a learning record only when [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md) says to.
 
-Each lesson should recommend a primary source for the user to read or watch. This should be the most high-quality, high-trust resource you found on the topic.
+Quiz options are bare claims of the same shape. Write the correct claim, then mutate it into each distractor. The explanation comes after the answer. Use the host's multiple-choice tool when it has one (`ask_user_question` on Grok Build). Otherwise ask in prose and wait. Do not mark the correct option.
 
-Each lesson should contain a reminder to ask followup questions to the agent. The agent is their teacher, and can assist with anything that's unclear.
+## Practice page
+
+Write a practice page only when a manipulable figure teaches the node, or the practice needs a short in-browser task. It is HTML under `lessons/`, built from `assets/`. Link it from the node's `page` field. The page does not write `PATH.md`.
+
+A claim drawn as a picture is Mermaid in the map, or HTML/SVG whose source you can re-read. Do not send that claim through an image generator. When the host can open the page, look at it before the quiz. When it cannot, keep the page to a few elements.
+
+Open the page for the user when you write one (`xdg-open`, `open`, or the editor). Remind them they can ask the agent about anything unclear.
 
 ## Assets
 
-Lessons are built from reusable **components**, stored in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers, and anything else a second lesson could reuse.
+Practice pages are built from reusable **components**, stored in `./assets/`: stylesheets, simulators, diagram helpers, and anything else a second page could reuse.
 
-Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and link to it; never inline code a future lesson would duplicate.
+Reuse is the default. Before authoring a practice page, read `./assets/` and build from the components already there. When a page needs something new and reusable, write it as a component in `./assets/` and link to it.
 
-A shared stylesheet is the first component every workspace earns: every lesson links it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.
+A shared stylesheet is the first component every course earns: every practice page links it.
 
 ## The Mission
 
-Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.
+Every node should tie into the mission — the reason the user is learning this topic.
 
-If the user is unclear about the mission, or the `MISSION.md` is not populated, your first job should be to question the user on why they want to learn this.
+If the user is unclear about the mission, or `MISSION.md` is empty, question them on why they want to learn this before writing the course.
 
-Failing to understand the mission will mean knowledge acquisition is not grounded in real-world goals. Lessons will feel too abstract. You will have no way of judging what the user should do next.
+A mission that is still vague will make the path abstract, and you will have no way to pick among ready nodes.
 
-Missions may change as the user develops more skills and knowledge. This is normal - make sure to update the `MISSION.md` and add a learning record to capture the change. Confirm with the user before changing the mission.
+Missions change. Update `MISSION.md` and add a learning record when the reason changes. Confirm with the user before changing the mission.
 
 ## Zone Of Proximal Development
 
-Each lesson, the user should always feel as if they are being challenged 'just enough'.
+Each node should challenge the user just enough.
 
-The user may specify an exact thing they want to learn. If they don't, figure out their zone of proximal development by:
-
-- Reading their `learning-records`
-- Figuring out the right thing to teach them based on their mission
-- Teach the most relevant thing that fits in their zone of proximal development
+The bounded probe in [Session](#session) is how you locate that edge before writing or expanding a level. Between sessions, read `learning-records` and the path, and teach the ready node that best serves the mission.
 
 ## Knowledge
 
-Lessons should be designed around a skill the user is going to learn. The knowledge in the lesson should be only what's required to acquire that skill. You teach the knowledge first, then get the user to practice the skills via an interactive feedback loop.
-
-Knowledge should first be gathered from trusted resources. Use `RESOURCES.md` to keep track of them. Lessons should be littered with citations - links to external resources to back up any claim made. This increases the trustworthiness of the lesson.
-
-For acquiring knowledge, difficulty is the enemy. It eats working memory you need for understanding.
+The knowledge in a node is only what that node needs. Gather it from the node's source in `RESOURCES.md` before teaching. Cite that source. For acquiring knowledge, difficulty eats the working memory you need for understanding.
 
 ## Skills
 
-If knowledge is all about acquisition, skills are about durability and flexibility. Make the knowledge stick.
+Skills are durability. The chat quiz and the level exam are retrieval. A practice page or a real-world sequence (for instance, assembling a drone) is how a practice node is exercised. A practice node may point at a trainer exercise; do not absorb the trainer into this skill.
 
-For skill acquisition, difficulty is the tool. Effortful retrieval is what builds storage strength. Skills should be taught through interactive lessons. There are several tools at your disposal:
-
-- Interactive lessons, using quizzes and light in-browser tasks
-- Lessons which guide the user through a list of real-world steps to take (for instance, assembling a drone)
-
-Each of these should be based on a **feedback loop**, where the user receives feedback on their performance. This feedback loop should be as tight as possible, giving feedback immediately - and ideally automatically.
-
-For quizzes, each answer should be exactly the same number of words (and characters, if possible). Don't give the user any clues about the answer through formatting.
+Feedback is immediate: the quiz answer, or the result of the step they just did.
 
 ## Acquiring Wisdom
 
-Wisdom comes from true real-world interaction - testing your skills outside the learning environment.
+Wisdom comes from using the skill outside the course.
 
-When the user asks a question that appears to require wisdom, your default posture should be to attempt to answer - but to ultimately delegate to a **community**.
-
-A community is a place (online or offline) where the user can test their skills in the real world. This might be a forum, a subreddit, a real-world class (budget permitting) or a local interest group.
-
-You should attempt to find high-reputation communities the user can join. If the user expresses a preference that they don't want to join a community, respect it.
+When a question needs wisdom, answer it, and also point at a community: a forum, a subreddit, a class, or a local group with a strong reputation. If the user does not want to join a community, record that in `RESOURCES.md` and stop proposing one.
 
 ## Reference Documents
 
-While creating lessons, you should also create reference documents. Lessons can reference these documents - they are useful for tracking raw units of knowledge useful across lessons.
+While teaching nodes, also write reference documents. Sessions are rarely reread in full. Reference documents are. They are the compressed essence, for quick lookup.
 
-Lessons will rarely be revisited later - reference documents will be. They should be the compressed essence of the lesson, in a format designed for quick reference.
-
-Some learning topics lend themselves to reference:
+Some topics lend themselves to reference:
 
 - Syntax and code snippets for programming
 - Algorithms and flowcharts for processes
 - System design patterns and architecture
-- Glossaries for any topic with its own nomenclature (`GLOSSARY.md`, not a file under `reference/`)
+- Glossaries (`GLOSSARY.md`, not a file under `reference/`)
 
-Glossaries, in particular, are an essential reference. Once one is created, it should be adhered to in every lesson.
+Once a glossary exists, every session uses it.
 
 ## `NOTES.md`
 
-The user will sometimes express preferences of how they want to be taught, or things you should keep in mind. This is the place to record those preferences, so you can refer back to them when designing lessons or working with the user.
+Record how the user wants to be taught, so the next session can follow it.

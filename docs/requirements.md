@@ -1,9 +1,9 @@
 # Toolbox — Requirements (v1.6)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; v1.6 delta accepted 2026-09-27  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; v1.6 delta accepted 2026-09-27; teach-path delta (§27–§28) accepted 2026-09-29  
 Date: 2026-09-27  
 Command: `tb`  
-Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, v1.4, and v1.5 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections (ADR 0010). v1.6 is the **Delta from v1.5** and **Acceptance (v1.6)** sections at the end (ADR 0011). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, v1.4, and v1.5 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections (ADR 0010). v1.6 is the **Delta from v1.5** and **Acceptance (v1.6)** sections (ADR 0011). The teach-path delta is §27–§28, accepted 2026-09-29 (ADR 0012, ADR 0013). It does not rewrite the v1.6 contract. Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -649,3 +649,115 @@ increment.
    Go test is required because no Go behavior changed.
 7. `tb install` links `trainer-maker` and `cpp-cmake-verify` into
    `~/.claude/skills` and `~/.grok/skills`.
+
+## 27. Delta from v1.6 (teach path)
+
+Status: accepted
+Date: 2026-09-29
+
+Additive. Does not rewrite any earlier section. No new profile, no `tb`
+code change, no `tbVersion` change, no new skill directory. ADR 0012 and
+ADR 0013. Words in `docs/GLOSSARY.md` are the names used below.
+
+The learner opens Claude Code or Grok Build and asks to be taught a topic.
+The skill writes a course into the Obsidian vault and teaches one node per
+session from a path both agents can read. The model runs only inside the
+session already open.
+
+### 27.1 Course directory
+
+A course is `<vault>/Learn/<slug>/`. The vault is the nearest ancestor of
+the current directory that contains `.obsidian`. If there is none, and
+`~/Documents/Obsidian Vault` contains `.obsidian`, that folder is the vault.
+Otherwise the agent asks for the vault root and does not create a course
+until the user names one. A product repo (cwd contains `toolbox.toml`,
+`Cargo.toml`, `go.mod`, or a generated `AGENTS.md`) is never the course.
+
+The course keeps `MISSION.md`, `GLOSSARY.md`, `RESOURCES.md`,
+`learning-records/`, `reference/`, `lessons/`, `assets/`, and `NOTES.md`,
+and gains `PATH.md`.
+
+### 27.2 Path
+
+`PATH.md` is the path. The open level is written as nodes. Later levels are
+a list of titles, with no node ids, until the open level's exam is passed.
+Each full node names a source already listed in `RESOURCES.md`. The Mermaid
+fence in `PATH.md` is rebuilt from the node sections in the same edit, and
+again at the start of every session before any teaching.
+
+Node kinds are concept, practice, and exam. A quiz is the chat check that
+marks a concept or practice node passed. The agent shows the path and waits
+before teaching the first node of a level, and again after expanding the
+next level.
+
+### 27.3 Session
+
+Before the path is created, and again before a sketched level is expanded,
+the agent fills an empty mission by interviewing, then probes each strand of
+that level with one question and, if it is answered right, one harder
+question, then stops that strand. It does not probe a later level in that
+same session unless the user asks. Sources are written into `RESOURCES.md`
+before the level's nodes.
+
+A session teaches one ready node: motivate it, establish it from its source,
+connect it to the nodes it requires, then quiz it in chat. The host's
+multiple-choice question tool is used when that host has one; otherwise the
+question is asked in prose and the agent waits. The answer key is not marked
+in the options.
+
+Passing the quiz sets that node to passed and may write a learning record
+under the existing record rules. A practice page does not set status.
+
+### 27.4 Exam
+
+Each level has one exam node. Its due date is the next calendar day after
+the last concept or practice node of that level passes. The agent does not
+start the exam before that date unless the user explicitly asks, in which
+case the node records the override. When the exam is ready and due, the
+session offers it before teaching a new node.
+
+A failed exam returns to ready and sets back to ready only the nodes that
+failure implicated, plus any node in the same level that requires one of
+those. Earlier levels stay as they are. A passed exam closes the level. The
+next level is then expanded in a later step that shows the path and waits
+before teaching.
+
+### 27.5 Practice page
+
+A practice page is HTML under the course's `lessons/`, built from `assets/`,
+linked from a node. It is written when manipulating a figure teaches the
+node, or when practice needs a short in-browser task. Diagrams that state a
+claim are Mermaid in the path, or HTML/SVG whose source the agent can
+re-read. An image generator is not used for those diagrams.
+
+### 27.6 Non-goals
+
+- An app or local server that calls a model, or any Pi extension.
+- Mirroring the session transcript into the vault.
+- An Obsidian canvas, or a quiz node distinct from the node it checks.
+- A fully specified path on the first day.
+- A per-node review queue besides the exam.
+- Folding `trainer-maker` into `teach`. A practice node may point at a trainer exercise.
+- Editing `profiles/`, `cmd/tb/`, `README.md`, or any skill other than `teach`.
+- Changing `MISSION-FORMAT.md`, `GLOSSARY-FORMAT.md`, `RESOURCES-FORMAT.md`, or `LEARNING-RECORD-FORMAT.md`.
+
+## 28. Acceptance (teach path done when)
+
+1. `skills/teach/SKILL.md` still names `MISSION.md`, `RESOURCES.md`,
+   `GLOSSARY.md`, `learning-records/`, retrieval practice, and the product-repo
+   refusal (`toolbox.toml`).
+2. `skills/teach/SKILL.md` states the course path `<vault>/Learn/<slug>/`
+   and the vault discovery order in §27.1.
+3. `skills/teach/SKILL.md` states: show `PATH.md` and wait before teaching
+   the first node of a level; the chat quiz is the only writer of node
+   status; a practice page does not set status; probe depth is one question
+   plus one harder question per strand.
+4. `skills/teach/PATH-FORMAT.md` defines kinds `concept`, `practice`, and
+   `exam`; statuses `locked`, `ready`, `in-progress`, and `passed`; sketched
+   levels as title lists; Mermaid rebuilt from the node sections; exam due
+   the next calendar day; exam failure reopening only the implicated nodes
+   in that level.
+5. `skills/teach/MISSION-FORMAT.md`, `GLOSSARY-FORMAT.md`,
+   `RESOURCES-FORMAT.md`, and `LEARNING-RECORD-FORMAT.md` are byte-unchanged.
+6. No file under `profiles/` or `cmd/tb/` changes, and no skill other than
+   `teach` changes.

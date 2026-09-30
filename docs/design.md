@@ -1,6 +1,6 @@
 # Toolbox — Design (v1.5)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; teach-path §26–§27 accepted 2026-09-29
 Date: 2026-09-22
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
@@ -12,7 +12,8 @@ not restate rationale already recorded in
 `docs/adr/0001-*.md` through `docs/adr/0010-*.md` — those are cited, not
 re-argued.
 v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16–§17;
-v1.3 is §18–§19; v1.4 is §20–§21; v1.5 is §22 onward.
+v1.3 is §18–§19; v1.4 is §20–§21; v1.5 is §22–§23; v1.6 is §24–§25.
+§26–§27 are the teach path, accepted 2026-09-29 (requirements §27–§28, ADR 0012, ADR 0013).
 
 ## 1. Path resolution
 
@@ -1099,3 +1100,149 @@ to v1.6.
 No item in requirements §26 lacks a mechanism above.
 
 No item in requirements §24 lacks a mechanism above.
+
+## 26. Teach path
+
+Requirements §27. ADRs 0012 and 0013. No new skill directory, no profile
+edit, no `cmd/tb` edit. `tb install` already symlinks `skills/teach/`, so a
+new file in that directory is picked up by the existing link.
+
+### 26.1 Course discovery
+
+`SKILL.md`'s teaching-workspace section gains the rule in requirements
+§27.1, in this order, and keeps the product-repo refusal:
+
+1. Walk ancestors of cwd for `.obsidian`. The nearest one is the vault.
+2. Else, if `~/Documents/Obsidian Vault/.obsidian` exists, that is the vault.
+3. Else ask for the vault root and stop.
+
+Slug is lowercase dash-case of the topic. The course is
+`<vault>/Learn/<slug>/`. Create the directory only after the mission
+interview has a concrete why. Do not scan `$HOME` for other vaults.
+
+### 26.2 `PATH-FORMAT.md`
+
+New file `skills/teach/PATH-FORMAT.md`. `SKILL.md` links it and does not
+repeat the schema. Template the file must specify:
+
+````md
+# Path: {Topic}
+
+## Map
+
+```mermaid
+graph TD
+  n1["Packets"]
+  n2["Ordering"]
+  n1 --> n2
+  n3(["Level 1 exam"])
+  n2 --> n3
+  L2["Level 2: Routing"]
+  n3 --> L2
+  classDef passed stroke:#2a2
+  class n1 passed
+```
+
+## Level 1 — {Title}
+status: open
+
+### n1 {Title}
+- kind: concept
+- status: ready
+- requires:
+- source: [{title}](url)
+- due:
+- page:
+
+### n3 {Title}
+- kind: exam
+- status: locked
+- requires: n1, n2
+- source: [{title}](url)
+- due:
+- page:
+- override:
+
+## Level 2 — {Title}
+status: sketched
+
+- {title}
+- {title}
+- Exam
+````
+
+Rules the file must state:
+
+- Ids `n1`, `n2`, … never reused or renumbered. Exam nodes use the same sequence.
+- `kind` is `concept`, `practice`, or `exam`. No `quiz` kind.
+- `status` is `locked`, `ready`, `in-progress`, or `passed`.
+- Empty `requires` means the node may be `ready`. Otherwise it is `ready` only when every listed id is `passed`.
+- At most one node is `in-progress`.
+- A full node (any `###` under an open level) has a `source` that already appears in `RESOURCES.md`. A sketched level has no `###` nodes and no ids.
+- `page` is a course-relative path or empty. `override` is empty or `user`, and only on an exam.
+- On every write, and at the start of every session before teaching, replace the whole Map fence from the sections: one Mermaid node per `###`, label is the heading title, stadium shape for `exam`, an edge for each requires id, `classDef passed` applied to passed nodes. Each sketched level is one node `L{N}["Level {N}: {title}"]`. Edge it from the previous level's exam if that exam exists, otherwise from the previous sketched node.
+- Session open also recalculates: `locked` becomes `ready` when its requires are all passed. Do not change `passed` or `in-progress` during that pass.
+- When the last concept or practice node of the open level becomes `passed`, set the exam `due` to the next calendar day. Do not start that exam while the session date is before `due`, unless `override: user`.
+- Exam failure: set the exam back to `ready`. Set each implicated node, and any same-level node that requires an implicated node, from `passed` or `in-progress` back to `ready`. Leave other levels alone.
+- Expanding a level deletes its title bullets, writes `###` nodes with sources, sets `status: open` on that level and `status: closed` on the previous one only after its exam is `passed`, and rebuilds the map. Show the map and wait before teaching.
+
+### 26.3 Session section of `SKILL.md`
+
+Add a `## Session` section. Keep Mission, zone of proximal development,
+Knowledge, Skills, Wisdom, and Reference. The HTML "Lessons" section becomes
+a pointer: a practice page is optional and is specified in §26.4; it is not
+created for every node.
+
+Session order:
+
+1. Resolve the course (§26.1). Read `MISSION.md`, `PATH.md`, and the learning records.
+2. If `PATH.md` is missing: interview until the mission is concrete, run the bounded probe (§27.3), write sources, write Level 1 in full and later levels as sketched titles, show the map, and stop until the user accepts it.
+3. If the open level's exam is `ready` and `due` is today or earlier (or `override: user`), give the exam before any new node.
+4. Else if a node is `in-progress`, resume it.
+5. Else teach one `ready` concept or practice. Several ready nodes: pick the one whose source serves the mission; if still tied, ask. Set it `in-progress` when teaching starts.
+6. If every concept and practice in the open level is `passed` and the exam is not yet due, tell the learner the exam date and stop. Do not expand the next level.
+7. After an exam passes, close the level. Expansion of the next level is a new plan step (probe, sources, nodes, show map, wait), not the same turn as the exam.
+
+Teaching one node is four moves, then the quiz: motivate why this node now, establish it from its source, connect it to the nodes in `requires`, quiz in chat. A miss means the node stays `in-progress` and is repaired before anything is built on it. A pass sets `passed` and writes a learning record only when the existing record rules say so.
+
+Probe text, verbatim in intent: for each strand this level will use, one question, then one harder question if the first is right, then stop that strand. Do not probe a later level in that session unless the user asks.
+
+Frontmatter `description` becomes:
+
+```
+Use when the user wants to learn a topic over multiple sessions — a vault course with a path of levels, chat quizzes, and an exam per level; skip in a product repo (toolbox.toml, Cargo.toml, go.mod at cwd) unless they name a directory that is not the product root.
+```
+
+`argument-hint` stays `"What would you like to learn about?"`.
+
+Quiz construction, in `SKILL.md`, kept short: every option is a bare claim of the same shape; write the correct claim, then mutate it into each distractor; the explanation comes after the answer. Use the host's multiple-choice tool when it has one (`ask_user_question` on Grok Build). Otherwise ask in prose and wait. Do not mark the correct option.
+
+### 26.4 Practice page
+
+`SKILL.md` states a practice page is written only when a manipulable figure
+teaches the node, or the practice needs a short in-browser task. Reuse
+`assets/` before adding a component. Link the file from the node's `page`
+field. The page does not write `PATH.md`. A claim drawn as a picture is
+Mermaid in the map, or HTML/SVG the agent can re-read. Do not send that
+claim through an image generator. When the host can open the page, look at
+it before the quiz; when it cannot, keep the page to a few elements.
+
+### 26.5 Files this delta does not touch
+
+`MISSION-FORMAT.md`, `GLOSSARY-FORMAT.md`, `RESOURCES-FORMAT.md`,
+`LEARNING-RECORD-FORMAT.md`, every other skill, `profiles/`, `cmd/tb/`,
+`README.md`.
+
+## 27. Traceability: teach-path acceptance → design mechanism
+
+| Requirements §28 item | Mechanism |
+|---|---|
+| 1. Mission, sources, glossary, records, retrieval, product-repo refusal remain | §26.3 (those sections stay) and §26.5 |
+| 2. Course path and vault discovery | §26.1 |
+| 3. Wait before teaching; chat quiz writes status; practice page does not; bounded probe | §26.3 and §26.4 |
+| 4. `PATH-FORMAT.md` schema, sketched levels, Mermaid rebuild, exam due, exam failure | §26.2 |
+| 5. Four existing format files byte-unchanged | §26.5 |
+| 6. No profile, `cmd/tb`, or other-skill change | §26.5 |
+
+No item in requirements §28 lacks a mechanism above.
+
