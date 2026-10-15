@@ -3,3 +3,6 @@ dist/
 
 # Local-only config overrides, if ever used
 *.local.toml
+
+# Session handoff is local working state, not for a public repo
+docs/session.md
