@@ -677,10 +677,10 @@ or any skill besides `teach`. Do not edit the four existing teach format files.
 
 ## Group 41 — Acceptance (requirements §30, run manually on Arch)
 
-- [ ] **41.1** Requirements §30 items 1–6 in scratch git repos, after
+- [x] **41.1** Requirements §30 items 1–6 in scratch git repos, after
       `make linux`. Check: file contents, `git check-ignore`, `cmp` of
       `.gitignore` before/after, and `git ls-files` for item 5.
-- [ ] **41.2** Item 7. Check: `toolbox.toml` shows `1.7.0`;
+- [x] **41.2** Item 7. Check: `toolbox.toml` shows `1.7.0`;
       `git diff --stat <spec commit>..HEAD -- profiles skills templates`
       is empty.
 

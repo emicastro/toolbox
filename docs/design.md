@@ -1316,8 +1316,11 @@ Because the refuse path returns before step 1, a refused init leaves
 - `Init -p <fixture>` in an empty repo → `.gitignore` contains the entry
   and stdout has `wrote: …/.gitignore`;
 - re-run with `--force` → stdout has `unchanged: …/.gitignore`;
-- the existing non-TTY refusal test also asserts `.gitignore` does not
-  exist afterwards;
+- a dedicated non-TTY refusal test: first init with a profile that does
+  not scaffold the handoff (so no `.gitignore` exists), then a refused
+  re-run with one that does → `.gitignore` still does not exist. The
+  existing refusal test switches to `infra-go`, which never writes
+  `.gitignore`, so an assertion there could not fail;
 - a fixture profile whose `templates` omits `docs/session.md` → no
   `.gitignore` written, no `.gitignore` line printed;
 - a repo with `docs/session.md` committed → stdout contains the
