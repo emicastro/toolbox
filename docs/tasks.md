@@ -655,17 +655,17 @@ or any skill besides `teach`. Do not edit the four existing teach format files.
 
 ## Group 39 — Binary (v1.7)
 
-- [ ] **39.1** `scaffold.EnsureIgnored` per design §28.1 with the tests in
+- [x] **39.1** `scaffold.EnsureIgnored` per design §28.1 with the tests in
       §28.3. Check: `cd cmd/tb && go test ./internal/scaffold/` passes and
       covers missing file, no trailing newline, both existing spellings
       (with spaces and CRLF), and idempotent re-run.
-- [ ] **39.2** `tb init` wiring per design §28.2: the `.gitignore` call
+- [x] **39.2** `tb init` wiring per design §28.2: the `.gitignore` call
       gated on the profile's templates, the tracked-handoff warning, the
       `wrote:` / `unchanged:` line, and `tbVersion = "1.7.0"`, with the
       CLI tests in §28.3. Check: `rg 'tbVersion = "1.7.0"' cmd/tb`;
       `cd cmd/tb && go test ./internal/cli/` covers refusal, profile
       without the template, and the tracked warning.
-- [ ] **39.3** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+- [x] **39.3** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
       `go test ./...`; `go test -race ./...`. Check: all four pass.
 
 ## Group 40 — README

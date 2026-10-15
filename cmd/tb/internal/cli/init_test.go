@@ -106,8 +106,8 @@ func TestInit_BackGoProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "back-go"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"back-go\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.7.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.7.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -136,8 +136,8 @@ func TestInit_GameBevyProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "game-bevy"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"game-bevy\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.7.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.7.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -166,8 +166,8 @@ func TestInit_CppSystemsProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "cpp-systems"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"cpp-systems\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.7.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.7.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -196,8 +196,8 @@ func TestInit_CCliProfile(t *testing.T) {
 	if !strings.Contains(string(pointer), `profile = "c-cli"`) {
 		t.Errorf("toolbox.toml = %q, want it to contain profile = \"c-cli\"", pointer)
 	}
-	if !strings.Contains(string(pointer), `toolbox_version = "1.5.0"`) {
-		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.5.0\"", pointer)
+	if !strings.Contains(string(pointer), `toolbox_version = "1.7.0"`) {
+		t.Errorf("toolbox.toml = %q, want toolbox_version = \"1.7.0\"", pointer)
 	}
 
 	agentsMD, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
@@ -385,4 +385,106 @@ func TestInit_ForceRefreshesOnlyAgentsAndPointer(t *testing.T) {
 	if string(reqBefore) != string(reqAfter) {
 		t.Errorf("docs/requirements.md changed under --force, want it left alone:\nbefore = %q\nafter  = %q", reqBefore, reqAfter)
 	}
+}
+
+func TestInit_IgnoresSessionHandoff(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	repo := newGitRepo(t)
+	t.Chdir(repo)
+
+	stdout, stderr, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems"}) })
+	if code != 0 {
+		t.Fatalf("Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	gitignore := filepath.Join(repo, ".gitignore")
+	if !strings.Contains(stdout, "wrote: "+gitignore) {
+		t.Errorf("stdout = %q, want wrote: for .gitignore", stdout)
+	}
+	runGit(t, repo, "check-ignore", "-q", "docs/session.md")
+
+	before, err := os.ReadFile(gitignore)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout, stderr, code = captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems", "--force"}) })
+	if code != 0 {
+		t.Fatalf("forced Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	if !strings.Contains(stdout, "unchanged: "+gitignore) {
+		t.Errorf("stdout = %q, want unchanged: for .gitignore on re-run", stdout)
+	}
+	after, err := os.ReadFile(gitignore)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(before) != string(after) {
+		t.Errorf(".gitignore changed on re-run:\nbefore = %q\nafter  = %q", before, after)
+	}
+}
+
+func TestInit_ProfileWithoutHandoffTemplateLeavesGitignoreAlone(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	repo := newGitRepo(t)
+	t.Chdir(repo)
+
+	stdout, stderr, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "infra-go"}) })
+	if code != 0 {
+		t.Fatalf("Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	if _, err := os.Stat(filepath.Join(repo, ".gitignore")); err == nil {
+		t.Error(".gitignore exists, want none for a profile that does not scaffold docs/session.md")
+	}
+	if strings.Contains(stdout, ".gitignore") {
+		t.Errorf("stdout = %q, want no .gitignore line", stdout)
+	}
+}
+
+func TestInit_RefusalLeavesGitignoreUntouched(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	repo := newGitRepo(t)
+	t.Chdir(repo)
+
+	// infra-go does not scaffold the handoff, so no .gitignore yet.
+	if _, _, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "infra-go"}) }); code != 0 {
+		t.Fatalf("first Init() code = %d, want 0", code)
+	}
+
+	devNull, err := os.Open(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer devNull.Close()
+	oldStdin := os.Stdin
+	os.Stdin = devNull
+	t.Cleanup(func() { os.Stdin = oldStdin })
+
+	// rust-systems would write .gitignore, but AGENTS.md would change, so a
+	// non-interactive run must refuse before any write.
+	_, _, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems"}) })
+	if code != 1 {
+		t.Fatalf("re-run Init() code = %d, want 1 (non-interactive refuse)", code)
+	}
+	if _, err := os.Stat(filepath.Join(repo, ".gitignore")); err == nil {
+		t.Error(".gitignore was created despite the refusal")
+	}
+}
+
+func TestInit_WarnsWhenHandoffIsTracked(t *testing.T) {
+	toolboxHome := newFixtureToolboxHome(t)
+	repo := newGitRepo(t)
+	t.Chdir(repo)
+
+	writeFile(t, filepath.Join(repo, "docs", "session.md"), "old handoff\n")
+	runGit(t, repo, "add", "docs/session.md")
+	runGit(t, repo, "commit", "-q", "-m", "track handoff")
+
+	stdout, stderr, code := captureOutput(t, func() int { return Init(toolboxHome, []string{"-p", "rust-systems"}) })
+	if code != 0 {
+		t.Fatalf("Init() code = %d, stderr = %q, want 0", code, stderr)
+	}
+	if !strings.Contains(stdout, "git rm --cached docs/session.md") {
+		t.Errorf("stdout = %q, want a warning naming git rm --cached docs/session.md", stdout)
+	}
+	// tb must not touch the index: the file is still tracked.
+	runGit(t, repo, "ls-files", "--error-unmatch", "docs/session.md")
 }

@@ -29,7 +29,7 @@ func newFixtureToolboxHome(t *testing.T) string {
 description = "fixture"
 persona = "default"
 skills = ["spec", "adr"]
-templates = ["AGENTS.md", "docs/requirements.md", "docs/adr/0000-template.md"]
+templates = ["AGENTS.md", "docs/requirements.md", "docs/session.md", "docs/adr/0000-template.md"]
 
 [verify]
 summary = "cargo test"
@@ -88,6 +88,7 @@ summary = "make test"
 		"Verify: {{.VerifySummary}}\n"+
 		endMarkerForTest+"\n")
 	writeFile(t, filepath.Join(home, "templates", "docs", "requirements.md"), "# Requirements\n\nFill this in.\n")
+	writeFile(t, filepath.Join(home, "templates", "docs", "session.md"), "# Session\n")
 	writeFile(t, filepath.Join(home, "templates", "docs", "adr", "0000-template.md"), "# NNNN. Title\n")
 
 	return home

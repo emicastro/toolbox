@@ -115,3 +115,103 @@ func TestMaterializeTemplatesLeavesExistingFileAlone(t *testing.T) {
 		t.Errorf("existing docs/session.md was modified: got %q", got)
 	}
 }
+
+func TestEnsureIgnoredCreatesMissingGitignore(t *testing.T) {
+	repo := t.TempDir()
+
+	changed, err := EnsureIgnored(repo, "docs/session.md")
+	if err != nil {
+		t.Fatalf("EnsureIgnored() error = %v", err)
+	}
+	if !changed {
+		t.Error("EnsureIgnored() changed = false, want true for a missing .gitignore")
+	}
+	got, err := os.ReadFile(filepath.Join(repo, ".gitignore"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := ignoreComment + "\ndocs/session.md\n"
+	if string(got) != want {
+		t.Errorf(".gitignore = %q, want %q", got, want)
+	}
+}
+
+func TestEnsureIgnoredKeepsExistingBytesWithoutTrailingNewline(t *testing.T) {
+	repo := t.TempDir()
+	original := "dist/\n*.log"
+	writeFile(t, filepath.Join(repo, ".gitignore"), original)
+
+	changed, err := EnsureIgnored(repo, "docs/session.md")
+	if err != nil {
+		t.Fatalf("EnsureIgnored() error = %v", err)
+	}
+	if !changed {
+		t.Error("EnsureIgnored() changed = false, want true")
+	}
+	got, err := os.ReadFile(filepath.Join(repo, ".gitignore"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := original + "\n" + ignoreComment + "\ndocs/session.md\n"
+	if string(got) != want {
+		t.Errorf(".gitignore = %q, want %q", got, want)
+	}
+}
+
+func TestEnsureIgnoredLeavesExistingEntryAlone(t *testing.T) {
+	cases := map[string]string{
+		"plain":           "dist/\ndocs/session.md\n",
+		"anchored":        "/docs/session.md\n",
+		"spaces":          "  docs/session.md  \n",
+		"crlf":            "dist/\r\ndocs/session.md\r\n",
+		"anchored no EOL": "dist/\n/docs/session.md",
+	}
+	for name, content := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := t.TempDir()
+			path := filepath.Join(repo, ".gitignore")
+			writeFile(t, path, content)
+
+			changed, err := EnsureIgnored(repo, "docs/session.md")
+			if err != nil {
+				t.Fatalf("EnsureIgnored() error = %v", err)
+			}
+			if changed {
+				t.Error("EnsureIgnored() changed = true, want false when the entry exists")
+			}
+			got, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != content {
+				t.Errorf(".gitignore modified: got %q, want %q", got, content)
+			}
+		})
+	}
+}
+
+func TestEnsureIgnoredIsIdempotent(t *testing.T) {
+	repo := t.TempDir()
+	if _, err := EnsureIgnored(repo, "docs/session.md"); err != nil {
+		t.Fatal(err)
+	}
+	first, err := os.ReadFile(filepath.Join(repo, ".gitignore"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	changed, err := EnsureIgnored(repo, "docs/session.md")
+	if err != nil {
+		t.Fatalf("second EnsureIgnored() error = %v", err)
+	}
+	if changed {
+		t.Error("second EnsureIgnored() changed = true, want false")
+	}
+	second, err := os.ReadFile(filepath.Join(repo, ".gitignore"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(first) != string(second) {
+		t.Errorf(".gitignore changed on second call:\nfirst  = %q\nsecond = %q", first, second)
+	}
+}

@@ -3,10 +3,52 @@
 package scaffold
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+const ignoreComment = "# Session handoff is local working state (tb init)"
+
+// EnsureIgnored makes sure repoRoot/.gitignore has a line for entry
+// (docs/design.md §28.1). A line equal to entry or "/"+entry, after
+// trimming whitespace, counts as present. The file is only ever
+// appended to or created, never rewritten.
+func EnsureIgnored(repoRoot, entry string) (changed bool, err error) {
+	path := filepath.Join(repoRoot, ".gitignore")
+	data, readErr := os.ReadFile(path)
+	if readErr != nil && !errors.Is(readErr, fs.ErrNotExist) {
+		return false, fmt.Errorf("tb: %w", readErr)
+	}
+
+	for line := range strings.SplitSeq(string(data), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == entry || trimmed == "/"+entry {
+			return false, nil
+		}
+	}
+
+	block := ignoreComment + "\n" + entry + "\n"
+	if len(data) > 0 && !strings.HasSuffix(string(data), "\n") {
+		block = "\n" + block
+	}
+
+	f, openErr := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if openErr != nil {
+		return false, fmt.Errorf("tb: %w", openErr)
+	}
+	if _, writeErr := f.WriteString(block); writeErr != nil {
+		f.Close()
+		return false, fmt.Errorf("tb: %w", writeErr)
+	}
+	if closeErr := f.Close(); closeErr != nil {
+		return false, fmt.Errorf("tb: %w", closeErr)
+	}
+	return true, nil
+}
 
 // MaterializeTemplates copies each of templatePaths (relative to
 // $TOOLBOX_HOME/templates, per docs/design.md §3.3) into repoRoot at the

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"toolbox/cmd/tb/internal/config"
@@ -14,7 +15,7 @@ import (
 
 // tbVersion is written into a product repo's toolbox.toml
 // (toolbox_version, docs/design.md §3.2) — informational only.
-const tbVersion = "1.5.0"
+const tbVersion = "1.7.0"
 
 // Init implements `tb init` (docs/design.md §5.2).
 func Init(toolboxHome string, args []string) int {
@@ -87,13 +88,40 @@ func Init(toolboxHome string, args []string) int {
 		return 1
 	}
 
+	ignoresHandoff := slices.Contains(profile.Templates, sessionHandoff)
+	gitignoreChanged := false
+	if ignoresHandoff {
+		if gitignoreChanged, err = scaffold.EnsureIgnored(repoRoot, sessionHandoff); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 1
+		}
+	}
+
 	printInitSummary(
 		profile.Name,
 		pointerPath, pointerExisted && existingPointer == newPointer,
 		agentsPath, agentsExisted && existingAgents == newAgents,
 		created, skipped,
 	)
+	if ignoresHandoff {
+		printWroteOrUnchanged(filepath.Join(repoRoot, ".gitignore"), !gitignoreChanged)
+	}
+	if isTracked(repoRoot, sessionHandoff) {
+		fmt.Printf("warn: %s is tracked; .gitignore will not untrack it. Run: git rm --cached %s\n", sessionHandoff, sessionHandoff)
+	}
 	return 0
+}
+
+// sessionHandoff is the file the handoff skill writes; it stays out of git
+// (docs/design.md §28).
+const sessionHandoff = "docs/session.md"
+
+// isTracked reports whether rel is in the git index of repoRoot. It only
+// reads the index; tb never modifies it.
+func isTracked(repoRoot, rel string) bool {
+	cmd := exec.Command("git", "ls-files", "--error-unmatch", "--", rel)
+	cmd.Dir = repoRoot
+	return cmd.Run() == nil
 }
 
 func gitRepoRoot() (string, error) {
