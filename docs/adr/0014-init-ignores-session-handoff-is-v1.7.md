@@ -1,6 +1,6 @@
 # 0014. `tb init` ignores the session handoff; this increment is v1.7
 
-Status: proposed
+Status: accepted
 Date: 2026-10-15
 
 ## Context

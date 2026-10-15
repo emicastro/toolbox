@@ -1,6 +1,6 @@
 # Toolbox — Tasks (v1.7)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22. Groups 36–37 (teach path) completed 2026-09-29. v1.7 groups 38–41 proposed 2026-10-15.
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22. Groups 36–37 (teach path) completed 2026-09-29. v1.7 groups 38–41 accepted 2026-10-15.
 Date: 2026-10-15
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
@@ -649,7 +649,7 @@ or any skill besides `teach`. Do not edit the four existing teach format files.
       delta + §30 acceptance. Check: every §30 item is a line you can fail.
 - [x] **38.3** `docs/design.md` §28–§29 cite 0014 and map §30 → mechanism.
       Check: traceability table has one row per §30 item.
-- [ ] **38.4** User marks 0014 `accepted` (and this file's v1.7 groups
+- [x] **38.4** User marks 0014 `accepted` (and this file's v1.7 groups
       accepted). Check: ADR header says `Status: accepted`. Do not start
       Group 39 until this box is ticked.
 

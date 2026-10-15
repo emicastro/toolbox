@@ -1,6 +1,6 @@
 # Toolbox — Design (v1.7)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; teach-path §26–§27 accepted 2026-09-29; v1.7 delta proposed 2026-10-15
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; teach-path §26–§27 accepted 2026-09-29; v1.7 delta accepted 2026-10-15
 Date: 2026-10-15
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
