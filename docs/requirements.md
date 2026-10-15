@@ -1,9 +1,9 @@
-# Toolbox — Requirements (v1.6)
+# Toolbox — Requirements (v1.7)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; v1.6 delta accepted 2026-09-27; teach-path delta (§27–§28) accepted 2026-09-29  
-Date: 2026-09-27  
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; v1.6 delta accepted 2026-09-27; teach-path delta (§27–§28) accepted 2026-09-29; v1.7 delta proposed 2026-10-15  
+Date: 2026-10-15  
 Command: `tb`  
-Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, v1.4, and v1.5 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections (ADR 0010). v1.6 is the **Delta from v1.5** and **Acceptance (v1.6)** sections (ADR 0011). The teach-path delta is §27–§28, accepted 2026-09-29 (ADR 0012, ADR 0013). It does not rewrite the v1.6 contract. Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
+Source of truth for this product: this file. v1, v1.1, v1.2, v1.3, v1.4, and v1.5 text below is unchanged and remains accepted. v1.1 is the **Delta from v1** and **Acceptance (v1.1)** sections (ADR 0005). v1.2 is the **Delta from v1.1** and **Acceptance (v1.2)** sections (ADR 0007). v1.3 is the **Delta from v1.2** and **Acceptance (v1.3)** sections (ADR 0008). v1.4 is the **Delta from v1.3** and **Acceptance (v1.4)** sections (ADR 0009). v1.5 is the **Delta from v1.4** and **Acceptance (v1.5)** sections (ADR 0010). v1.6 is the **Delta from v1.5** and **Acceptance (v1.6)** sections (ADR 0011). The teach-path delta is §27–§28, accepted 2026-09-29 (ADR 0012, ADR 0013). It does not rewrite the v1.6 contract. v1.7 is the **Delta from v1.6 and the teach path** and **Acceptance (v1.7)** sections at the end (ADR 0014). Design and tasks for each delta are produced in Plan Mode in the `toolbox` repo.
 
 ## 1. Problem
 
@@ -761,3 +761,45 @@ re-read. An image generator is not used for those diagrams.
    `RESOURCES-FORMAT.md`, and `LEARNING-RECORD-FORMAT.md` are byte-unchanged.
 6. No file under `profiles/` or `cmd/tb/` changes, and no skill other than
    `teach` changes.
+
+## 29. Delta from v1.6 and the teach path (v1.7)
+
+Additive. Does not rewrite §1–§28. Decision and rationale: ADR 0014. Remaining v1 non-goals stay non-goals.
+
+### 29.1 Problem
+
+Every profile scaffolds `docs/session.md`, and the `handoff` / `onboard` skills write the session handoff there. That file is transient by design, but nothing keeps it out of git, so in a public product repo the handoff gets published.
+
+### 29.2 `tb init` keeps the handoff out of git
+
+When the profile's `templates` list contains `docs/session.md` (every current profile does), `tb init` ensures the product repo's root `.gitignore` has an entry for it:
+
+- If `.gitignore` already has a line equal to `docs/session.md` or `/docs/session.md`, ignoring leading and trailing whitespace, nothing is written.
+- Otherwise the entry is appended. A missing `.gitignore` is created. An existing one that lacks a trailing newline gets one first. The appended block is one comment line plus `docs/session.md`. Existing lines are never reordered, rewritten, or removed.
+- `tb` does not evaluate glob patterns and does not consult `git check-ignore` or global excludes. A match that holds on one machine must hold on every machine, so only the repo's own `.gitignore` counts.
+- The write happens only when `tb init` proceeds. When init refuses (non-interactive with changes, or the user declines the prompt), `.gitignore` is untouched, so "no files were changed" stays true. The append needs no prompt of its own and no `--force`, because it can only add a line, like template creation.
+- Init reports `.gitignore` with the existing `wrote:` / `unchanged:` lines.
+
+### 29.3 A tracked handoff is warned about, not fixed
+
+A `.gitignore` entry does not untrack a file that is already tracked. If `docs/session.md` is tracked, `tb init` prints a warning that names `git rm --cached docs/session.md`. `tb` never modifies the git index.
+
+### 29.4 Scope
+
+Only `docs/session.md`. `docs/GLOSSARY.md`, `docs/tasks.md`, ADRs, and every other `docs/` file are durable project knowledge and stay tracked. No profile, skill, or template changes. No profile `ignore` field (that is a `profiles/*.toml` schema change, reserved for v2 by ADR 0005).
+
+### 29.5 Version stamp
+
+`tb init` / `tb init --force` writes `toolbox_version = "1.7.0"`. `tbVersion` jumps from `1.5.0` to `1.7.0` to match the spec version that introduced the behavior; `1.6.0` would collide with spec v1.6, which was content-only (ADR 0011). This repo's `schema_version` stays `"1"`.
+
+## 30. Acceptance (v1.7 done when)
+
+On Arch, after a rebuild of `tb`:
+
+1. `tb init -p <any profile>` in a fresh git repo with no `.gitignore` creates one containing `docs/session.md`, and `git check-ignore docs/session.md` exits 0.
+2. In a repo whose `.gitignore` lacks a trailing newline, `tb init` leaves every existing line byte-identical and appends the entry on its own line.
+3. In a repo whose `.gitignore` already has `docs/session.md` or `/docs/session.md`, `tb init --force` leaves `.gitignore` byte-identical and prints `unchanged:` for it.
+4. When `tb init` refuses (non-interactive, `AGENTS.md` would change, no `--force`), `.gitignore` is not created or modified.
+5. In a repo where `docs/session.md` is already tracked, `tb init` prints a warning naming `git rm --cached docs/session.md`, and the git index is unchanged afterwards.
+6. A profile whose `templates` list omits `docs/session.md` (test fixture) leaves `.gitignore` untouched.
+7. `toolbox.toml` records `toolbox_version = "1.7.0"`. No file under `profiles/`, `skills/`, or `templates/` changes.

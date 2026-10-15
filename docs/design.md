@@ -1,7 +1,7 @@
-# Toolbox — Design (v1.5)
+# Toolbox — Design (v1.7)
 
-Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; teach-path §26–§27 accepted 2026-09-29
-Date: 2026-09-22
+Status: v1 accepted 2026-09-09; v1.1 delta accepted 2026-09-11; v1.2 delta accepted 2026-09-12; v1.3 delta accepted 2026-09-12; v1.4 delta accepted 2026-09-18; v1.5 delta accepted 2026-09-22; teach-path §26–§27 accepted 2026-09-29; v1.7 delta proposed 2026-10-15
+Date: 2026-10-15
 Source of truth for requirements: `docs/requirements.md`. This file answers
 the "how" for every §14 open point and every command in §8, plus the v1.1
 delta in requirements §15, the v1.2 delta in requirements §17, the
@@ -9,11 +9,12 @@ v1.3 delta in requirements §19, the v1.4 delta in requirements §21, and
 the v1.5 delta in requirements §23.
 It does
 not restate rationale already recorded in
-`docs/adr/0001-*.md` through `docs/adr/0010-*.md` — those are cited, not
+`docs/adr/0001-*.md` through `docs/adr/0014-*.md` — those are cited, not
 re-argued.
 v1 sections below stay as accepted; v1.1 is §14–§15; v1.2 is §16–§17;
 v1.3 is §18–§19; v1.4 is §20–§21; v1.5 is §22–§23; v1.6 is §24–§25.
 §26–§27 are the teach path, accepted 2026-09-29 (requirements §27–§28, ADR 0012, ADR 0013).
+v1.7 is §28 onward (requirements §29–§30, ADR 0014).
 
 ## 1. Path resolution
 
@@ -1246,3 +1247,97 @@ it before the quiz; when it cannot, keep the page to a few elements.
 
 No item in requirements §28 lacks a mechanism above.
 
+
+## 28. v1.7 `tb init` ignores the session handoff
+
+Requirements §29. Decision: ADR 0014. No new subcommand, no new flag, no
+`profiles/*.toml` schema change. `schema_version` stays `"1"`.
+`tbVersion` becomes `"1.7.0"`.
+
+### 28.1 Mechanism
+
+New function in `internal/scaffold`, next to `MaterializeTemplates`:
+
+```go
+// EnsureIgnored makes sure repoRoot/.gitignore has a line for entry.
+// It returns changed=false when an equivalent line already exists.
+func EnsureIgnored(repoRoot, entry string) (changed bool, err error)
+```
+
+- Reads `repoRoot/.gitignore`. A missing file is treated as empty and is
+  created; any other read error is returned.
+- Scans lines with `strings.TrimSpace`. A line equal to `entry` or
+  `"/" + entry` means already present: return `false, nil` without
+  writing. Trimming also absorbs a trailing `\r` from CRLF files.
+- Otherwise appends, in one write: a `\n` if the existing content is
+  non-empty and does not end in `\n`, then
+  `# Session handoff is local working state (tb init)\n`, then
+  `entry + "\n"`. Opens with `O_APPEND|O_CREATE|O_WRONLY`, mode `0o644`,
+  so existing bytes are never rewritten.
+- No glob evaluation, no `git` invocation. `scaffold` stays pure file I/O.
+
+### 28.2 Wiring in `tb init`
+
+In `cli/init.go`, after `MaterializeTemplates` succeeds (so after the
+refuse/prompt gate, which returns before any write):
+
+1. If `profile.Templates` contains `"docs/session.md"`, call
+   `scaffold.EnsureIgnored(repoRoot, "docs/session.md")`. An error is
+   `tb: <err>`, exit 1, matching the other write failures.
+2. Independently, run `git ls-files --error-unmatch docs/session.md` in
+   `repoRoot`. Exit 0 means tracked: print
+   `warn: docs/session.md is tracked; .gitignore will not untrack it. Run: git rm --cached docs/session.md`
+   to stdout, the same stream and `warn:` prefix `tb doctor` uses. A
+   non-zero exit (untracked or absent) prints nothing. `tb` never runs
+   `git rm`.
+3. `printInitSummary` gains the `.gitignore` path, reported through the
+   existing `printWroteOrUnchanged` (`wrote:` when `changed`, `unchanged:`
+   otherwise), after the `created:` / `left alone` lines. When the profile
+   does not scaffold `docs/session.md`, no `.gitignore` line is printed.
+
+Because the refuse path returns before step 1, a refused init leaves
+`.gitignore` untouched (requirements §29.2).
+
+### 28.3 Tests
+
+`internal/scaffold`:
+
+- missing `.gitignore` → created with the comment and the entry,
+  `changed == true`;
+- existing file without trailing newline → original bytes preserved as a
+  prefix, entry on its own line;
+- existing `docs/session.md` line, and existing `/docs/session.md` line,
+  including with surrounding spaces and CRLF → `changed == false`, file
+  byte-identical;
+- second call after a first append → `changed == false` (idempotent).
+
+`internal/cli`:
+
+- `Init -p <fixture>` in an empty repo → `.gitignore` contains the entry
+  and stdout has `wrote: …/.gitignore`;
+- re-run with `--force` → stdout has `unchanged: …/.gitignore`;
+- the existing non-TTY refusal test also asserts `.gitignore` does not
+  exist afterwards;
+- a fixture profile whose `templates` omits `docs/session.md` → no
+  `.gitignore` written, no `.gitignore` line printed;
+- a repo with `docs/session.md` committed → stdout contains the
+  `git rm --cached docs/session.md` warning, and `git ls-files` still
+  lists the file;
+- the existing `toolbox_version` assertions move to `1.7.0`.
+
+The CLI fixture profiles gain `docs/session.md` in their `templates`
+where a test needs it, plus one fixture without it.
+
+## 29. Traceability: v1.7 acceptance → design mechanism
+
+| Requirements §30 item | Mechanism |
+|---|---|
+| 1. Fresh repo gets `.gitignore` with the entry; `git check-ignore` exits 0 | §28.1 create path, §28.2 step 1 |
+| 2. No trailing newline → existing bytes kept, entry on its own line | §28.1 append with leading `\n` |
+| 3. Entry already present (either spelling) → byte-identical, `unchanged:` | §28.1 trimmed exact match, §28.2 step 3 |
+| 4. Refused init leaves `.gitignore` alone | §28.2 ordering after the refuse gate |
+| 5. Tracked handoff → warning, index unchanged | §28.2 step 2 |
+| 6. Profile without the template → `.gitignore` untouched | §28.2 step 1 condition |
+| 7. `toolbox_version = "1.7.0"`; profiles, skills, templates unchanged | `tbVersion`; §28 scope |
+
+No item in requirements §30 lacks a mechanism above.

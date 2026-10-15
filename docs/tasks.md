@@ -1,7 +1,7 @@
-# Toolbox — Tasks (v1.5)
+# Toolbox — Tasks (v1.7)
 
-Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22. Groups 36–37 (teach path) completed 2026-09-29.
-Date: 2026-09-22
+Status: v1 groups 1–6 accepted 2026-09-09; v1.1 groups 7–11 accepted 2026-09-11; v1.2 groups 12–16 accepted 2026-09-12; v1.3 groups 17–21 accepted 2026-09-12; v1.4 groups 22–26 accepted 2026-09-18; v1.5 groups 27–31 accepted 2026-09-22. Groups 36–37 (teach path) completed 2026-09-29. v1.7 groups 38–41 proposed 2026-10-15.
+Date: 2026-10-15
 Each task is scoped for one Implement session and ends in a runnable check.
 Follow `docs/design.md` for shape; do not reopen a decision recorded there
 or in `docs/adr/*` without a new ADR (persona rule, §7 of requirements).
@@ -637,3 +637,56 @@ or any skill besides `teach`. Do not edit the four existing teach format files.
       Check: `git diff --exit-code -- skills/teach/MISSION-FORMAT.md skills/teach/GLOSSARY-FORMAT.md skills/teach/RESOURCES-FORMAT.md skills/teach/LEARNING-RECORD-FORMAT.md`
       and
       `bad=$(git diff --name-only -- profiles cmd/tb skills | grep -v -E '^(skills/teach/SKILL.md|skills/teach/PATH-FORMAT.md)$' || true); test -z "$bad"`.
+
+## Group 38 — Spec (v1.7)
+
+- [x] **38.1** ADR `docs/adr/0014-init-ignores-session-handoff-is-v1.7.md`
+      as `proposed` (document only / profile `ignore` field / init appends
+      when the profile scaffolds the handoff / same plus `git rm --cached`).
+      Check: file exists, four MADR sections, four named options, Decision
+      is the append-when-scaffolded option with `tbVersion` `1.7.0`.
+- [x] **38.2** `docs/requirements.md` header v1.7; §1–§28 unchanged; §29
+      delta + §30 acceptance. Check: every §30 item is a line you can fail.
+- [x] **38.3** `docs/design.md` §28–§29 cite 0014 and map §30 → mechanism.
+      Check: traceability table has one row per §30 item.
+- [ ] **38.4** User marks 0014 `accepted` (and this file's v1.7 groups
+      accepted). Check: ADR header says `Status: accepted`. Do not start
+      Group 39 until this box is ticked.
+
+## Group 39 — Binary (v1.7)
+
+- [ ] **39.1** `scaffold.EnsureIgnored` per design §28.1 with the tests in
+      §28.3. Check: `cd cmd/tb && go test ./internal/scaffold/` passes and
+      covers missing file, no trailing newline, both existing spellings
+      (with spaces and CRLF), and idempotent re-run.
+- [ ] **39.2** `tb init` wiring per design §28.2: the `.gitignore` call
+      gated on the profile's templates, the tracked-handoff warning, the
+      `wrote:` / `unchanged:` line, and `tbVersion = "1.7.0"`, with the
+      CLI tests in §28.3. Check: `rg 'tbVersion = "1.7.0"' cmd/tb`;
+      `cd cmd/tb && go test ./internal/cli/` covers refusal, profile
+      without the template, and the tracked warning.
+- [ ] **39.3** From `cmd/tb`: `gofmt -l .` silent; `go vet ./...`;
+      `go test ./...`; `go test -race ./...`. Check: all four pass.
+
+## Group 40 — README
+
+- [ ] **40.1** `README.md`'s "Wire a product repo" section says `tb init`
+      adds `docs/session.md` to `.gitignore` and warns when it is already
+      tracked; the version reference becomes `1.7.0`. Check:
+      `rg -q 'docs/session.md' README.md` and `rg -q '1\.7\.0' README.md`.
+
+## Group 41 — Acceptance (requirements §30, run manually on Arch)
+
+- [ ] **41.1** Requirements §30 items 1–6 in scratch git repos, after
+      `make linux`. Check: file contents, `git check-ignore`, `cmp` of
+      `.gitignore` before/after, and `git ls-files` for item 5.
+- [ ] **41.2** Item 7. Check: `toolbox.toml` shows `1.7.0`;
+      `git diff --stat <spec commit>..HEAD -- profiles skills templates`
+      is empty.
+
+## Explicitly out of scope for groups 38–41
+
+Per requirements §29 and ADR 0014: no profile `ignore` field, no `tb`
+command that modifies the git index, no other ignored path, no doctor
+check for a tracked handoff, no Windows support. Do not add tasks for any
+of these without a new ADR.
