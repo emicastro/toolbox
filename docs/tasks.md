@@ -670,7 +670,7 @@ or any skill besides `teach`. Do not edit the four existing teach format files.
 
 ## Group 40 — README
 
-- [ ] **40.1** `README.md`'s "Wire a product repo" section says `tb init`
+- [x] **40.1** `README.md`'s "Wire a product repo" section says `tb init`
       adds `docs/session.md` to `.gitignore` and warns when it is already
       tracked; the version reference becomes `1.7.0`. Check:
       `rg -q 'docs/session.md' README.md` and `rg -q '1\.7\.0' README.md`.

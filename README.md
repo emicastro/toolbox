@@ -8,10 +8,10 @@ own `docs/` (including ADRs).
 Toolbox is not an MCP server, not a daemon, not a marketplace, and not part
 of any product crate.
 
-Source of truth for v1.6: [`docs/requirements.md`](docs/requirements.md).
+Source of truth for v1.7: [`docs/requirements.md`](docs/requirements.md).
 How it is built: [`docs/design.md`](docs/design.md). Recorded forks:
-[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.5.0"`
-(unchanged by v1.6, which adds skills but no profile).
+[`docs/adr/`](docs/adr/). `tb init` writes `toolbox_version = "1.7.0"`
+(v1.6 added skills only, so the stamp skipped from 1.5.0 to 1.7.0).
 
 ## What it does
 
@@ -76,6 +76,14 @@ This writes `toolbox.toml` (the profile pointer), renders `AGENTS.md`, and
 creates missing `docs/` templates listed by the profile. Existing
 `docs/adr/*` files are never touched, including under `--force`. Skills stay
 in `$TOOLBOX_HOME`.
+
+`docs/session.md` is the session handoff: local working state, not project
+knowledge. `tb init` appends it to the repo's `.gitignore` (creating the
+file if needed, never rewriting existing lines), so a public repo does not
+publish it. A `.gitignore` entry does not untrack a file that is already
+committed, so if it is, `tb init` prints a warning naming
+`git rm --cached docs/session.md`. `tb` never modifies the git index
+itself. Existing repos pick this up with `tb init --force`.
 
 Re-running `tb init` on a repo that already has `AGENTS.md` /
 `toolbox.toml`:
